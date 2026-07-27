@@ -1,0 +1,84 @@
+﻿@model PIV11.Models.ViewModels.MemberFormViewModel
+@using PIV11.Infrastructure
+@{
+    bool isNew = ViewBag.IsNew ?? true;
+    ViewBag.ActiveScreen = "My People";
+    ViewBag.Title = isNew ? "Add Person" : "Edit Person";
+}
+
+<div class="page-container-narrow">
+    <div class="card">
+        <h2>@(isNew ? "Add Person" : "Edit Person")</h2>
+
+        @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
+
+        @using (Html.BeginForm("MemberForm", "People", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="PersonID" value="@Model.PersonID" />
+
+            <label class="field-label" for="Name">Name</label>
+            <input class="field-input" type="text" id="Name" name="Name" value="@Model.Name"
+                   placeholder="e.g. Marie" title="This person's name" aria-describedby="nameHint" />
+            <p id="nameHint" class="field-hint">Who this allergen profile is for.</p>
+
+            <label class="field-label" for="GroupSelect">Group</label>
+            <select class="field-select" id="GroupSelect" title="Pick an existing group, or leave on 'Create new group' and type a name below">
+                <option value="">Create new group&hellip;</option>
+                @{
+                    var existingGroups = ViewBag.ExistingGroups as List<string> ?? new List<string>();
+                }
+                @foreach (var g in existingGroups)
+                {
+                    <option value="@g" @(g == Model.GroupName ? "selected" : "")>@g</option>
+                }
+            </select>
+            <input class="field-input" type="text" id="GroupName" name="GroupName" value="@Model.GroupName"
+                   placeholder="e.g. Family, Friends, Work..." style="margin-top: 0.5rem;"
+                   title="Which group this person belongs to" aria-describedby="groupHint" />
+            <p id="groupHint" class="field-hint">Pick an existing group above, or type a new name here to start one.</p>
+
+            <label class="field-label" style="margin-top: 1.25rem;">Allergens</label>
+            <p class="field-hint" style="margin-top: 0;">Check every allergen this person is allergic to.</p>
+            <div class="allergen-checkbox-grid">
+                @foreach (var allergen in AllergenHelper.AllNames)
+                {
+                    bool isChecked = Model.SelectedAllergens != null && Model.SelectedAllergens.Contains(allergen);
+                    <label class="allergen-checklist-item">
+                        <input type="checkbox" name="SelectedAllergens" value="@allergen" @(isChecked ? "checked" : "") />
+                        @allergen
+                    </label>
+                }
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 1.5rem;">
+                <button type="submit" class="btn-primary">Save</button>
+                <a href="@Url.Action("Index", "People")" class="btn-secondary">Cancel</a>
+            </div>
+        }
+
+        @if (!isNew)
+        {
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                @using (Html.BeginForm("DeleteMember", "People", new { id = Model.PersonID }, FormMethod.Post,
+                    new { onsubmit = "return confirm('Remove this person?');" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="action-btn action-btn-delete">
+                        <span aria-hidden="true">&#128465;</span> Remove Person
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    document.getElementById('GroupSelect').addEventListener('change', function () {
+        var groupNameInput = document.getElementById('GroupName');
+        groupNameInput.value = this.value;
+        if (!this.value) {
+            groupNameInput.focus();
+        }
+    });
+</script>

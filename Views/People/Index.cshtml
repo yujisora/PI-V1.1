@@ -1,0 +1,70 @@
+﻿@model System.Collections.Generic.List<PIV11.Models.ViewModels.PersonGroupViewModel>
+@{
+    ViewBag.ActiveScreen = "My People";
+    ViewBag.Title = "My People";
+}
+
+<div class="page-container-narrow">
+    <div class="page-header-row">
+        <div>
+            <h2>My People</h2>
+            <p class="text-muted">Allergen profiles for family, friends, and colleagues &ndash; get instant safety alerts for everyone you care about.</p>
+        </div>
+        <a href="@Url.Action("MemberForm", "People")" class="btn-primary">+ Add Person</a>
+    </div>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <p class="text-muted empty-state">
+            You haven't added anyone yet.
+        </p>
+    }
+    else
+    {
+        foreach (var group in Model)
+        {
+            <details class="people-group-details" open="open">
+                <summary class="people-group-summary">
+                    @group.GroupName
+                    <span class="people-group-count">@group.Members.Count member@(group.Members.Count != 1 ? "s" : "")</span>
+                </summary>
+                <div class="people-member-list">
+                    @foreach (var member in group.Members)
+                    {
+                        <div class="people-member-row">
+                            <div class="people-member-info">
+                                <p class="people-member-name">@member.Name</p>
+                                @if (member.Allergens.Count > 0)
+                                {
+                                    <div class="people-member-chips">
+                                        @foreach (var allergen in member.Allergens)
+                                        {
+                                            <span class="badge-amber">@allergen</span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.2rem;">No allergens</p>
+                                }
+                            </div>
+                            <div class="people-member-actions">
+                                <a href="@Url.Action("MemberForm", "People", new { id = member.PersonID })"
+                                   class="icon-btn-small" aria-label="Edit @member.Name" title="Edit">&#9998;</a>
+                                @using (Html.BeginForm("DeleteMember", "People", new { id = member.PersonID }, FormMethod.Post,
+                                    new { onsubmit = "return confirm('Remove this person?');" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="icon-btn-small icon-btn-danger" aria-label="Remove @member.Name" title="Remove">&#10005;</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <a href="@Url.Action("MemberForm", "People", new { groupName = group.GroupName })" class="link-inline add-to-group-link">
+                        + Add person to @group.GroupName
+                    </a>
+                </div>
+            </details>
+        }
+    }
+</div>

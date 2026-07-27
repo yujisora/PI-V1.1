@@ -1,0 +1,82 @@
+<!-- This file renders only the accesibility menu in all of the views; all changes are done in site.js -->
+<!-- Este archivo muestra el menú de accesibilidad en todas las vistas; los cambios son realizados por site.js-->
+
+    <div class="accessibility-panel">
+        <div id="accessibilityMenu" class="accessibility-menu" hidden role="region" aria-label="Accessibility options">
+            <p class="accessibility-menu-title">Accessibility</p>
+
+            <div class="accessibility-section" role="group" aria-label="Text size">
+                <p class="accessibility-section-title" id="a11y-fontsize-label">Text Size</p>
+                <div class="accessibility-choice-row" role="group" aria-labelledby="a11y-fontsize-label">
+                    <button type="button" class="accessibility-option" data-setting="fontsize" data-value="100" aria-pressed="true">100%</button>
+                    <button type="button" class="accessibility-option" data-setting="fontsize" data-value="150" aria-pressed="false">150%</button>
+                    <button type="button" class="accessibility-option" data-setting="fontsize" data-value="200" aria-pressed="false">200%</button>
+                </div>
+            </div>
+
+            <div class="accessibility-section" role="group" aria-label="Letter spacing">
+                <p class="accessibility-section-title" id="a11y-spacing-label">Letter Spacing</p>
+                <div class="accessibility-choice-row" role="group" aria-labelledby="a11y-spacing-label">
+                    <button type="button" class="accessibility-option" data-setting="spacing" data-value="normal" aria-pressed="true">Normal</button>
+                    <button type="button" class="accessibility-option" data-setting="spacing" data-value="wide" aria-pressed="false">Wide</button>
+                    <button type="button" class="accessibility-option" data-setting="spacing" data-value="wider" aria-pressed="false">Wider</button>
+                </div>
+            </div>
+
+            <div class="accessibility-section" role="group" aria-label="Line height">
+                <p class="accessibility-section-title" id="a11y-lineheight-label">Line Spacing</p>
+                <div class="accessibility-choice-row" role="group" aria-labelledby="a11y-lineheight-label">
+                    <button type="button" class="accessibility-option" data-setting="lineheight" data-value="normal" aria-pressed="true">Normal</button>
+                    <button type="button" class="accessibility-option" data-setting="lineheight" data-value="relaxed" aria-pressed="false">Relaxed</button>
+                    <button type="button" class="accessibility-option" data-setting="lineheight" data-value="loose" aria-pressed="false">Loose</button>
+                </div>
+            </div>
+
+            <div class="accessibility-section" role="group" aria-label="Font">
+                <p class="accessibility-section-title" id="a11y-font-label">Font</p>
+                <div class="accessibility-choice-row" role="group" aria-labelledby="a11y-font-label">
+                    <button type="button" class="accessibility-option" data-setting="font" data-value="default" aria-pressed="true">Default</button>
+                    <button type="button" class="accessibility-option" data-setting="font" data-value="atkinson" aria-pressed="false">Atkinson</button>
+                    <button type="button" class="accessibility-option" data-setting="font" data-value="opendyslexic" aria-pressed="false">OpenDyslexic</button>
+                </div>
+            </div>
+
+            <div class="accessibility-section">
+                <div class="accessibility-toggle-row">
+                    <label class="accessibility-toggle-label" id="a11y-headings-label">Highlight headings</label>
+                    <button type="button" class="accessibility-toggle-switch" id="toggleHighlightHeadings"
+                            role="switch" aria-checked="false" aria-pressed="false" aria-labelledby="a11y-headings-label"></button>
+                </div>
+            </div>
+
+            <div class="accessibility-section">
+                <div class="accessibility-toggle-row">
+                    <label class="accessibility-toggle-label" id="a11y-links-label">Highlight links</label>
+                    <button type="button" class="accessibility-toggle-switch" id="toggleHighlightLinks"
+                            role="switch" aria-checked="false" aria-pressed="false" aria-labelledby="a11y-links-label"></button>
+                </div>
+            </div>
+
+            <div class="accessibility-section">
+                <div class="accessibility-toggle-row">
+                    <label class="accessibility-toggle-label" id="a11y-contrast-label">High contrast</label>
+                    <button type="button" class="accessibility-toggle-switch" id="toggleHighContrast"
+                            role="switch" aria-checked="false" aria-pressed="false" aria-labelledby="a11y-contrast-label"></button>
+                </div>
+            </div>
+
+            <div class="accessibility-section">
+                <div class="accessibility-toggle-row">
+                    <label class="accessibility-toggle-label" id="a11y-motion-label">Reduce motion</label>
+                    <button type="button" class="accessibility-toggle-switch" id="toggleReduceMotion"
+                            role="switch" aria-checked="false" aria-pressed="false" aria-labelledby="a11y-motion-label"></button>
+                </div>
+            </div>
+
+            <button type="button" id="accessibilityReset" class="accessibility-reset">Reset to defaults</button>
+        </div>
+
+        <button type="button" id="accessibilityToggle" class="accessibility-btn" aria-label="Open accessibility options" aria-expanded="false" aria-controls="accessibilityMenu">
+            &#9855;
+        </button>
+    </div>

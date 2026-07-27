@@ -1,0 +1,177 @@
+﻿@model PIV11.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewBag.ActiveScreen = "Home";
+    ViewBag.Title = "Admin Dashboard";
+}
+
+<div class="page-container">
+    <div class="page-header-row">
+        <div>
+            <h2>Admin Dashboard</h2>
+            <p class="text-muted">An overview of what's in the system and what needs attention.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="@Url.Action("ManageAccounts", "Account")" class="btn-secondary">Manage Accounts</a>
+            <a href="@Url.Action("CreateEmployee", "Account")" class="btn-primary">+ Create Employee Account</a>
+        </div>
+    </div>
+
+    @if (TempData["EmployeeCreatedMessage"] != null)
+    {
+        <p class="form-error" role="status" style="color: var(--primary-solid);">@TempData["EmployeeCreatedMessage"]</p>
+    }
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 0.25rem;">Product Lookup</h3>
+        <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 0.75rem;">Find a product by barcode or name to view or edit it.</p>
+        @using (Html.BeginForm("Search", "Home", FormMethod.Get))
+        {
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" name="query" class="field-input" placeholder="Barcode or product name..."
+                       value="@Model.SearchQuery" style="flex: 1; min-width: 12rem;" />
+                <button type="submit" class="btn-primary">Search</button>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.SearchError))
+        {
+            <p class="form-error" role="alert" style="margin-top: 0.75rem;">@Model.SearchError</p>
+        }
+        @if (!string.IsNullOrEmpty(Model.SearchNotFoundMessage))
+        {
+            <p class="form-error" role="alert" style="margin-top: 0.75rem;">
+                @Model.SearchNotFoundMessage
+                <a href="@Url.Action("AddProduct", "Home")" class="link-inline">Add it &rarr;</a>
+            </p>
+        }
+        @if (Model.SearchResults != null && Model.SearchResults.Count > 0)
+        {
+            <div class="search-results-list" style="margin-top: 0.75rem;">
+                @foreach (var r in Model.SearchResults)
+                {
+                    <a href="@Url.Action("Info", "Product", new { upc = r.UPC })" class="search-result-item">
+                        <span class="search-result-icon" aria-hidden="true">&#128230;</span>
+                        <span class="search-result-text">
+                            <span class="search-result-name">@r.Name</span>
+                            <span class="search-result-meta">@(string.IsNullOrEmpty(r.Brand) ? "" : r.Brand + " \u00b7 ")@r.UPC</span>
+                        </span>
+                        @if (r.HasAllergens)
+                        {
+                            <span class="search-result-warning" aria-label="Contains allergens" title="Contains allergens">&#9888;</span>
+                        }
+                    </a>
+                }
+            </div>
+        }
+
+        <a href="@Url.Action("Recent", "Home")" class="link-inline" style="display: inline-block; margin-top: 0.75rem;">View recent searches &rarr;</a>
+    </div>
+
+    <div class="dashboard-stats-grid">
+        <div class="card dashboard-stat-card">
+            <p class="dashboard-stat-value">@Model.TotalProducts</p>
+            <p class="dashboard-stat-label">Total Products</p>
+        </div>
+        <div class="card dashboard-stat-card">
+            <p class="dashboard-stat-value" style="color: #d97706;">@Model.PendingEditsCount</p>
+            <p class="dashboard-stat-label">Pending Edits</p>
+        </div>
+        <div class="card dashboard-stat-card">
+            <p class="dashboard-stat-value" style="color: var(--primary-solid);">@Model.ApprovedEditsCount</p>
+            <p class="dashboard-stat-label">Approved Edits</p>
+        </div>
+        <div class="card dashboard-stat-card">
+            <p class="dashboard-stat-value" style="color: var(--destructive);">@Model.DeniedEditsCount</p>
+            <p class="dashboard-stat-label">Denied Edits</p>
+        </div>
+    </div>
+
+    @if (Model.PendingEditsCount > 0)
+    {
+        <p class="form-error" role="status">
+            There @(Model.PendingEditsCount == 1 ? "is" : "are") @Model.PendingEditsCount pending edit@(Model.PendingEditsCount != 1 ? "s" : "") awaiting review.
+            Open a product's Edit History to approve or deny.
+        </p>
+    }
+
+    <h3 class="dashboard-section-title">Products With No Edit History</h3>
+    <p class="text-muted" style="margin-bottom: 1rem;">
+        Products has no "date added" field to sort by, so this is the closest available signal for
+        what's newest/least-reviewed &ndash; anything nobody has edited yet.
+    </p>
+    @if (Model.UneditedProducts.Count == 0)
+    {
+        <p class="text-muted empty-state">Every product has at least one recorded edit.</p>
+    }
+    else
+    {
+        <div class="recent-grid" style="margin-bottom: 2rem;">
+            @foreach (var p in Model.UneditedProducts)
+            {
+                <a href="@Url.Action("Info", "Product", new { upc = p.UPC })" class="card recent-item">
+                    <span class="recent-item-icon" aria-hidden="true">&#128230;</span>
+                    <span class="recent-item-text">
+                        <span class="recent-item-name">@p.Name</span>
+                        @if (!string.IsNullOrEmpty(p.Brand))
+                        {
+                            <span class="recent-item-brand">@p.Brand</span>
+                        }
+                        <span class="recent-item-upc">@p.UPC</span>
+                    </span>
+                </a>
+            }
+        </div>
+    }
+
+    <h3 class="dashboard-section-title">Recent Activity</h3>
+    @if (Model.RecentActivity.Count == 0)
+    {
+        <p class="text-muted empty-state">No edits have been proposed for any product yet.</p>
+    }
+    else
+    {
+        <div class="history-table-wrap">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Product</th>
+                        <th scope="col">User</th>
+                        <th scope="col">Field</th>
+                        <th scope="col">New Value</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.RecentActivity)
+                    {
+                        <tr>
+                            <td><a href="@Url.Action("History", "Product", new { upc = item.UPC })" class="link-inline">@item.ProductName</a></td>
+                            <td>@item.EditedByUser</td>
+                            <td>@item.FieldChanged</td>
+                            <td class="history-value-cell">
+                                <span class="truncate-value" tabindex="0" role="button"
+                                      aria-label="Click to see the full value" title="@item.NewValue">@item.NewValue</span>
+                                </td>
+                                <td>@item.DateEdited.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    @if (item.Status == "approved")
+                                    {
+                                        <span class="status-badge status-approved">&#10003; Approved</span>
+                                    }
+                                    else if (item.Status == "denied")
+                                    {
+                                        <span class="status-badge status-denied">&#10007; Denied</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-pending">&#128337; Pending</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,69 @@
+﻿@model System.Collections.Generic.List<PIV11.Models.ViewModels.RecentSearchItem>
+@{
+    ViewBag.ActiveScreen = "Recent";
+    ViewBag.Title = "Recent Searches";
+    bool hasRecent = ViewBag.HasRecent ?? false;
+    bool showingAll = ViewBag.ShowingAll ?? false;
+}
+
+<div class="page-container">
+    <div class="page-header-row">
+        <div>
+            @if (showingAll)
+            {
+                <h2>All Products</h2>
+                if (hasRecent)
+                {
+                    <p class="text-muted">
+                        Every product registered in the system.
+                        <a href="@Url.Action("Recent", "Home")" class="link-inline">Back to recent searches &rarr;</a>
+                    </p>
+                }
+                else
+                {
+                    <p class="text-muted">No recent searches yet &ndash; here's everything registered.</p>
+                }
+            }
+            else
+            {
+                <h2>Recent Searches</h2>
+                <p class="text-muted">
+                    Products you've looked up recently.
+                    <a href="@Url.Action("Recent", "Home", new { all = true })" class="link-inline">Browse all products &rarr;</a>
+                </p>
+            }
+        </div>
+        @if (PIV11.Infrastructure.SessionHelper.CanAddProducts)
+        {
+            <a href="@Url.Action("AddProduct", "Home")" class="btn-primary">+ Add Product</a>
+        }
+    </div>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <p class="text-muted empty-state">No products have been registered yet.</p>
+    }
+    else
+    {
+        <div class="recent-grid">
+            @foreach (var item in Model)
+            {
+                <a href="@Url.Action("Info", "Product", new { upc = item.UPC })" class="card recent-item">
+                    <span class="recent-item-icon" aria-hidden="true">&#128230;</span>
+                    <span class="recent-item-text">
+                        <span class="recent-item-name">@item.Name</span>
+                        @if (!string.IsNullOrEmpty(item.Brand))
+                        {
+                            <span class="recent-item-brand">@item.Brand</span>
+                        }
+                        <span class="recent-item-upc">@item.UPC</span>
+                    </span>
+                    @if (item.HasAllergens)
+                    {
+                        <span class="badge-amber">Allergens</span>
+                    }
+                </a>
+            }
+        </div>
+    }
+</div>

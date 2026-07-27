@@ -1,0 +1,54 @@
+﻿@model PIV11.Models.ViewModels.AddProductViewModel
+@{
+    ViewBag.ActiveScreen = "Recent";
+    ViewBag.Title = "Add Product";
+}
+
+<div class="page-container-narrow">
+    <div class="card">
+        <h2>Add New Product</h2>
+
+        @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
+
+        @using (Html.BeginForm("AddProduct", "Home", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            <label class="field-label" for="UPC">EAN/UPC Barcode</label>
+            <input class="field-input" type="text" id="UPC" name="UPC" value="@Model.UPC" placeholder="12 or 13-digit barcode"
+                   title="The barcode number printed under the product's barcode lines" aria-describedby="upcHint" />
+            <p id="upcHint" class="field-hint">The 12 or 13-digit number printed under the barcode lines on the package.</p>
+
+            <label class="field-label" for="ProductName">Product Name</label>
+            <input class="field-input" type="text" id="ProductName" name="ProductName" value="@Model.ProductName" placeholder="e.g. Organic Granola Bar"
+                   title="The product's full name as shown on the packaging" aria-describedby="productNameHint" />
+            <p id="productNameHint" class="field-hint">The full name as printed on the front of the package.</p>
+
+            <label class="field-label" for="Brand">Brand</label>
+            <input class="field-input" type="text" id="Brand" name="Brand" value="@Model.Brand" placeholder="e.g. Nature's Best"
+                   title="The manufacturer or brand name, if shown on the package" aria-describedby="brandHint" />
+            <p id="brandHint" class="field-hint">Optional &ndash; the manufacturer or brand name, if there is one.</p>
+
+            <div class="field-row">
+                <div>
+                    <label class="field-label" for="Weight">Weight / Volume</label>
+                    <input class="field-input" type="number" min="0" id="Weight" name="Weight" value="@Model.Weight" placeholder="250"
+                           title="The net weight or volume listed on the package" aria-describedby="weightHint" />
+                    <p id="weightHint" class="field-hint">Net weight/volume from the package label.</p>
+                </div>
+                <div>
+                    <label class="field-label" for="Unit">Unit</label>
+                    <select class="field-select" id="Unit" name="Unit"
+                            title="The unit that matches the weight/volume above" aria-describedby="unitHint">
+                        <option value="g" @(Model.Unit == "g" ? "selected" : "")>g</option>
+                        <option value="ml" @(Model.Unit == "ml" ? "selected" : "")>ml</option>
+                        <option value="pcs" @(Model.Unit == "pcs" ? "selected" : "")>pcs</option>
+                    </select>
+                    <p id="unitHint" class="field-hint">Grams, milliliters, or count.</p>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary btn-full" style="margin-top: 1.25rem;">Add Product</button>
+        }
+    </div>
+</div>

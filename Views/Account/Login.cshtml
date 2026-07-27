@@ -1,0 +1,138 @@
+@{
+    // The Login screen does not use _Layout.cshtml, as is formatted differently. It does use _AccesibilityPanel.cshtml
+
+    Layout = null;
+    ViewBag.Title = "Login - FoodScan";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/site.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible&family=Lexend:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    @* Same anti-flash script as _Layout.cshtml, duplicated here because this
+        page intentionally doesn't use _Layout. Keep both in sync if the set
+        of accessibility settings ever changes. *@
+    <script>
+        (function () {
+            var html = document.documentElement;
+
+            // Dark mode: if a choice was made before, choice stays; else, uses OS settings
+            // Modo oscuro: usa la última selección hecha; si es la primera vez, usa configuración del SO.
+            var darkPref = localStorage.getItem('foodscan-dark');
+            var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (darkPref === 'true' || (darkPref === null && systemPrefersDark)) {
+                html.classList.add('dark');
+            }
+
+            if (localStorage.getItem('foodscan-contrast') === 'true') html.classList.add('high-contrast');
+            if (localStorage.getItem('foodscan-motion') === 'true') html.classList.add('reduce-motion');
+            if (localStorage.getItem('foodscan-highlight-headings') === 'true') html.classList.add('highlight-headings');
+            if (localStorage.getItem('foodscan-highlight-links') === 'true') html.classList.add('highlight-links');
+
+            var fontChoice = localStorage.getItem('foodscan-font') || 'default';
+            if (fontChoice === 'atkinson') html.classList.add('font-atkinson');
+            else if (fontChoice === 'opendyslexic') html.classList.add('font-opendyslexic');
+
+            var fontSize = localStorage.getItem('foodscan-fontsize') || '100';
+            html.style.setProperty('--font-size', fontSize === '150' ? '24px' : fontSize === '200' ? '32px' : '16px');
+
+            var spacing = localStorage.getItem('foodscan-spacing') || 'normal';
+            html.style.setProperty('--letter-spacing', spacing === 'wide' ? '0.05em' : spacing === 'wider' ? '0.1em' : 'normal');
+
+            var lineHeight = localStorage.getItem('foodscan-lineheight') || 'normal';
+            html.style.setProperty('--line-height-base', lineHeight === 'relaxed' ? '1.8' : lineHeight === 'loose' ? '2.1' : '1.5');
+        })();
+    </script>
+</head>
+<body class="login-body">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="login-top-actions">
+        <button type="button" id="darkModeToggle" class="floating-icon-btn" aria-label="Switch to dark mode">
+            <span id="darkModeIcon" aria-hidden="true">&#9789;</span>
+        </button>
+    </div>
+
+    <main id="main-content" class="login-wrapper">
+        <div class="login-card">
+
+            <div class="login-header">
+                <h1 class="brand-logo">Food<span class="brand-accent">Scan</span></h1>
+                <p class="login-subtitle">Sign in to your account</p>
+            </div>
+            <!-- Allows screen readers to annnounce errors, if any -->
+            <!-- Permite que lectores de pantalla anuncien errores -->
+            @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
+
+            @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { autocomplete = "off" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <label class="field-label" for="username">Username</label>
+                <input type="text" id="username" name="username" class="field-input"
+                       placeholder="Enter your username" autocomplete="username"
+                       title="Your account username" />
+
+                <label class="field-label" for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="field-input"
+                           placeholder="Enter password" autocomplete="current-password"
+                           title="Your account password" aria-describedby="passwordFieldHint" />
+                    <button type="button" id="togglePasswordBtn" class="password-toggle-btn"
+                            aria-pressed="false" aria-controls="password">
+                        Show
+                    </button>
+                </div>
+                <p id="passwordFieldHint" class="field-hint">Forgot it? See &ldquo;Forgot password?&rdquo; below.</p>
+
+                <button type="submit" class="btn-primary btn-full btn-large">Login</button>
+            }
+
+            <div class="login-footer">
+                <button type="button" id="forgotPasswordBtn" class="link-button"
+                        aria-expanded="false" aria-controls="passwordHint">
+                    Forgot password?
+                </button>
+                <p id="passwordHint" class="password-hint" hidden role="status">The password for the demo accounts (admin/user/shopper) is: <strong>1234</strong>. Self-registered accounts use whatever password you chose.</p>
+                <a href="@Url.Action("Index", "Home")" class="link-button-block">Back</a>
+            </div>
+
+        </div>
+
+        <div class="login-card login-register-card">
+            <h2 class="login-register-title">New to FoodScan?</h2>
+            <p class="text-muted">Create a free shopper account to search products and manage My People.</p>
+            <a href="@Url.Action("Register", "Account")" class="btn-secondary btn-full btn-large login-register-btn">Create a Shopper Account</a>
+        </div>
+    </main>
+
+    <!-- Accessibility panel - same behavior as every other page -->{
+    <!-- Panel de accesibilidad - mismo comportamiento que en las demás páginas -->
+    @Html.Partial("_AccessibilityPanel")
+
+    <script src="~/Scripts/site.js"></script>
+    <script>
+        // Toggle "Forgot password?" hint text (runs client-side)
+        // Muestra tip de "Olvidaste la contraseña?" (corre del lado del usuario)
+        document.getElementById('forgotPasswordBtn').addEventListener('click', function () {
+            var hint = document.getElementById('passwordHint');
+            var isHidden = hint.hidden;
+            hint.hidden = !isHidden;
+            this.setAttribute('aria-expanded', isHidden.toString());
+        });
+
+        // Toggle password visibility between text/password input types
+        // Cambia la visibilidad de la contraseña a texto
+        document.getElementById('togglePasswordBtn').addEventListener('click', function () {
+            var pw = document.getElementById('password');
+            var isHidden = pw.type === 'password';
+            pw.type = isHidden ? 'text' : 'password';
+            this.textContent = isHidden ? 'Hide' : 'Show';
+            this.setAttribute('aria-pressed', isHidden.toString());
+        });
+    </script>
+</body>
+</html>

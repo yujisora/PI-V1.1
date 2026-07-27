@@ -1,0 +1,2409 @@
+/* =========================================================================
+   site.css
+   FoodScan visual theme, translated from the Figma mockup's CSS variables.
+   Organized in sections - search for the "=====" headers to jump around.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1) COLOR VARIABLES (light mode defaults, .dark overrides below)
+   Taken directly from the mockup's theme file.
+   ------------------------------------------------------------------------- */
+:root {
+    --font-size: 16px;
+    /* Accessibility panel controls - see section 10 for how these are toggled */
+    --letter-spacing: normal;
+    --line-height-base: 1.5;
+    /* Lexend is the default site-wide font (not just an accessibility
+       option) - it's a Google Font designed to reduce visual stress and
+       improve reading fluency, while still looking clean as a normal UI
+       font. See the accessibility panel for two further options
+       (Atkinson Hyperlegible, OpenDyslexic) for readers who need them. */
+    --font-family-base: 'Lexend', 'Segoe UI', Arial, sans-serif;
+    --background: #ffffff;
+    --foreground: #000000;
+    --card: #ffffff;
+    --card-foreground: #000000;
+    --primary: #1a7a1a;
+    --primary-foreground: #ffffff;
+    /* --primary-solid is ALWAYS used for solid button/pill fills that carry
+       white text on top. It stays fixed at this darker green in both light
+       and dark mode because the brighter dark-mode --primary (#22B12A) only
+       gives ~2.8:1 contrast with white text - well under the 4.5:1 WCAG AA
+       minimum. --primary itself stays available for text/icons/borders,
+       where it's checked against the page background instead and passes
+       comfortably in both modes. */
+    --primary-solid: #1a7a1a;
+    --secondary: #8DD63C;
+    --secondary-foreground: #000000;
+    --muted: #f2f4f1;
+    --muted-foreground: #616161;
+    --accent: #8DD63C;
+    --accent-foreground: #000000;
+    --destructive: #e01535;
+    --destructive-foreground: #ffffff;
+    --border: #dde0db;
+    --input-background: #ffffff;
+    --radius: 0.75rem;
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-full: 9999px;
+    /* Horizontal edge padding for page containers/hero/header. Deliberately
+       a fixed px value, NOT rem - if this scaled with --font-size like
+       everything else, cranking up text size would make the edge gutters
+       grow too, eating into the center content exactly when it needs more
+       room. Also shrinks on wider viewports below, since a centered
+       max-width container doesn't need much outer breathing room once the
+       screen is already wide. */
+    --edge-padding: 20px;
+    /* Role-tinted header backgrounds (from the mockup's Header component).
+       Admin uses a noticeably more saturated violet than a plain pastel -
+       the original very pale lavender (#ede9fe/#ddd6fe) was too subtle to
+       read as "purple" next to the user role's clearly-green tint. */
+    --header-guest-bg: #f8fafc;
+    --header-guest-border: #e2e8f0;
+    --header-user-bg: #d1fae5;
+    --header-user-border: #6ee7b7;
+    --header-admin-bg: #ddd6fe;
+    --header-admin-border: #c4b5fd;
+    --header-shopper-bg: #bfdbfe;
+    --header-shopper-border: #60a5fa;
+    /* Allergen warning box colors */
+    --warning-bg: #fef9c3;
+    --warning-border: #ef4444;
+    --amber-bg: #fffbeb;
+    --amber-border: #fde68a;
+    --amber-text: #92400e;
+}
+
+.dark {
+    --background: #111314;
+    --foreground: #f0f2f0;
+    --card: #1a1d1b;
+    --card-foreground: #f0f2f0;
+    --primary: #22B12A;
+    --primary-foreground: #ffffff;
+    --primary-solid: #1a7a1a;
+    --secondary: #8DD63C;
+    --secondary-foreground: #000000;
+    --muted: #252825;
+    --muted-foreground: #9aa09a;
+    --accent: #8DD63C;
+    --accent-foreground: #000000;
+    --destructive: #ff6166;
+    --destructive-foreground: #2b0a0a;
+    --border: #2a2e2a;
+    --input-background: #1a1d1b;
+    --header-guest-bg: #1a1d1b;
+    --header-guest-border: #2a2e2a;
+    --header-user-bg: #052e22;
+    --header-user-border: #064e3b;
+    --header-admin-bg: #2e1065;
+    --header-admin-border: #4c1d95;
+    --header-shopper-bg: #0c1e3d;
+    --header-shopper-border: #1e3a8a;
+    --warning-bg: #453411;
+    --warning-border: #f87171;
+    --amber-bg: #2c1f05;
+    --amber-border: #92400e;
+    --amber-text: #fbbf24;
+}
+
+/* Edge padding shrinks as the viewport widens - a centered max-width
+   container doesn't need much outer gutter once there's already plenty
+   of room, so freeing that space up gives the content column more
+   breathing room instead (most noticeable when text size is scaled up). */
+@media (min-width: 640px) {
+    :root {
+        --edge-padding: 16px;
+    }
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --edge-padding: 12px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   2) BASE / RESET
+   ------------------------------------------------------------------------- */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: var(--font-size);
+}
+
+body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-family-base);
+    letter-spacing: var(--letter-spacing);
+    line-height: var(--line-height-base);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4 {
+    margin: 0;
+    font-weight: 700;
+}
+
+p {
+    margin: 0;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* Browsers don't inherit font-family into form controls by default -
+   without this, the search box and every text input/select/textarea
+   would silently ignore the accessibility panel's font choice. */
+input, select, textarea {
+    font-family: inherit;
+}
+
+:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 1rem;
+    z-index: 9999;
+    padding: 0.5rem 1.25rem;
+    background: var(--primary-solid);
+    color: #fff;
+    border-radius: 0.5rem;
+    font-weight: 700;
+}
+
+    .skip-link:focus {
+        top: 1rem;
+    }
+
+/* Visually hides an element while keeping it announced by screen readers -
+   standard technique, used for labels that are visually redundant with a
+   placeholder but still required for accessible form association. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* -------------------------------------------------------------------------
+   3) LAYOUT CONTAINERS
+   ------------------------------------------------------------------------- */
+.page-container {
+    max-width: 68.75rem;
+    margin: 0 auto;
+    padding: 2rem var(--edge-padding);
+}
+
+.page-container-narrow {
+    max-width: 50rem;
+    margin: 0 auto;
+    padding: 2rem var(--edge-padding);
+}
+
+/* -------------------------------------------------------------------------
+   4) HEADER / NAV
+   ------------------------------------------------------------------------- */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+}
+
+.header-guest {
+    background: var(--header-guest-bg);
+    border-color: var(--header-guest-border);
+}
+
+.header-user {
+    background: var(--header-user-bg);
+    border-color: var(--header-user-border);
+}
+
+.header-admin {
+    background: var(--header-admin-bg);
+    border-color: var(--header-admin-border);
+}
+
+.header-shopper {
+    background: var(--header-shopper-bg);
+    border-color: var(--header-shopper-border);
+}
+
+.header-inner {
+    max-width: 81.25rem;
+    margin: 0 auto;
+    min-height: 4rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.5rem var(--edge-padding);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.brand-logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+}
+
+.brand-accent {
+    color: var(--primary);
+}
+
+.header-divider {
+    width: 1px;
+    height: 1.5rem;
+    background: var(--border);
+    margin: 0 0.25rem;
+    display: none;
+}
+
+.nav-pills {
+    display: none;
+    gap: 0.25rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 0.25rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.nav-pill {
+    border-radius: var(--radius-full);
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+    .nav-pill:hover {
+        color: var(--foreground);
+    }
+
+.nav-pill-active {
+    background: var(--primary-solid);
+    color: var(--primary-foreground);
+}
+
+    .nav-pill-active:hover {
+        color: var(--primary-foreground);
+    }
+
+.nav-pill-disabled {
+    border-radius: var(--radius-full);
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-lg);
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    color: var(--foreground);
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+    .icon-btn:hover {
+        background: rgba(0,0,0,0.06);
+    }
+
+.dark .icon-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.icon-btn:active {
+    transform: scale(0.9);
+}
+
+.icon-btn-primary {
+    color: var(--primary);
+}
+
+.user-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 0.4rem 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.user-pill-role {
+    color: var(--muted-foreground);
+    font-weight: 400;
+}
+
+.mobile-menu-wrapper {
+    position: relative;
+}
+
+.mobile-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    min-width: 10.625rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    overflow: hidden;
+    z-index: 20;
+}
+
+.mobile-menu-item {
+    display: block;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+    .mobile-menu-item:hover {
+        background: var(--muted);
+    }
+
+/* Desktop-style nav (pills instead of hamburger) shows on:
+     - any viewport at least 768px wide, regardless of orientation, OR
+     - landscape orientation with at least 480px of width (covers most
+       phones held sideways, which have the horizontal room for pills
+       even though they're not "tablet-wide"). This is why it's a
+       comma-separated (OR) media query rather than a single min-width. */
+@media (min-width: 768px), (orientation: landscape) and (min-width: 480px) {
+    .header-divider {
+        display: block;
+    }
+
+    .nav-pills {
+        display: flex;
+    }
+
+    .mobile-only {
+        display: none;
+    }
+}
+
+/* JS-driven override (see site.js: updateNavFit) - even within the "wide"
+   range above, the actual pill row might not fit (a moderately narrow
+   desktop window, a long username, larger text size, etc). When that's
+   measured to be the case, JS adds this class to fall back to the
+   hamburger menu instead of letting the header wrap onto two lines. */
+.site-header.nav-force-compact .nav-pills,
+.site-header.nav-force-compact .header-divider {
+    display: none !important;
+}
+
+.site-header.nav-force-compact .mobile-only {
+    display: inline-flex !important;
+}
+
+/* -------------------------------------------------------------------------
+   5) BUTTONS
+   ------------------------------------------------------------------------- */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--primary-solid);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+    .btn-primary:hover {
+        background: var(--primary-solid);
+        filter: brightness(1.15);
+    }
+
+    .btn-primary:active {
+        transform: scale(0.98);
+    }
+
+.btn-pill {
+    border-radius: var(--radius-full);
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+}
+
+.btn-large {
+    padding: 1rem;
+    font-size: 1.125rem;
+    border-radius: var(--radius-xl);
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.65rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background 0.15s ease;
+}
+
+    .btn-secondary:hover {
+        background: var(--muted);
+    }
+
+.btn-danger-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--destructive);
+    border: 1px solid var(--destructive);
+    border-radius: var(--radius-lg);
+    padding: 0.4rem 0.9rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+    .btn-danger-outline:hover {
+        background: var(--warning-bg);
+    }
+
+.link-button {
+    background: none;
+    border: none;
+    color: var(--muted-foreground);
+    text-decoration: underline;
+    font-size: 0.875rem;
+    padding: 0;
+}
+
+    .link-button:hover {
+        color: var(--primary);
+    }
+
+.link-button-block {
+    display: block;
+    text-align: center;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+    .link-button-block:hover {
+        color: var(--foreground);
+    }
+
+/* -------------------------------------------------------------------------
+   6) FORM FIELDS
+   ------------------------------------------------------------------------- */
+.field-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.85rem;
+    margin-bottom: 0.3rem;
+}
+
+.field-input,
+.field-select,
+.field-textarea {
+    width: 100%;
+    background: var(--input-background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    color: var(--foreground);
+}
+
+    .field-input:focus,
+    .field-select:focus,
+    .field-textarea:focus {
+        border-color: var(--primary);
+        outline: none;
+    }
+
+    .field-input[readonly] {
+        background: var(--muted);
+        color: var(--muted-foreground);
+        cursor: not-allowed;
+    }
+
+.field-textarea {
+    min-height: 7rem;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.form-error {
+    color: var(--destructive);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+    .form-error ul {
+        margin: 0;
+        padding-left: 1.1rem;
+    }
+
+/* Help text shown under a form field, explaining what it's for / what
+   goes in it. Always visible (not hover-only) so it works on touch
+   devices too - each field ALSO gets a matching title="" attribute for
+   a native hover tooltip on desktop, but the persistent text is the
+   real accessible version (screen readers pick it up via
+   aria-describedby, and it doesn't disappear when the mouse moves). */
+.field-hint {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+}
+
+.login-top-actions {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 50;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.floating-icon-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    font-size: 1.1rem;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+    .floating-icon-btn:hover {
+        background: var(--muted);
+    }
+
+    .floating-icon-btn:active {
+        transform: scale(0.92);
+    }
+
+/* -------------------------------------------------------------------------
+   7) LOGIN PAGE
+   ------------------------------------------------------------------------- */
+.login-body {
+    background: #e9f7e3;
+}
+
+.dark .login-body {
+    background: #333333;
+}
+
+.login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    padding: 1.25rem var(--edge-padding);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 25rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    padding: 2.5rem;
+}
+
+    .login-card form button[type="submit"] {
+        margin-top: 1.5rem;
+    }
+
+.register-card {
+    max-width: 32rem;
+}
+
+.login-register-card {
+    max-width: 25rem;
+    text-align: center;
+    border: 2px solid var(--secondary);
+    background: rgba(141, 214, 60, 0.08);
+    box-shadow: none;
+    padding: 1.75rem 2rem;
+}
+
+.login-register-title {
+    font-size: 1.15rem;
+    margin-bottom: 0.4rem;
+}
+
+.login-register-card p {
+    margin-bottom: 1rem;
+}
+
+.login-register-btn {
+    border-color: var(--primary-solid);
+    color: var(--primary-solid);
+    font-weight: 700;
+}
+
+    .login-register-btn:hover {
+        background: var(--primary-solid);
+        color: #fff;
+    }
+
+.login-header {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+
+.login-subtitle {
+    margin-top: 0.25rem;
+    color: var(--muted-foreground);
+    font-size: 1rem;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+}
+
+.login-footer {
+    margin-top: 1.25rem;
+    text-align: center;
+}
+
+.password-hint {
+    margin-top: 0.5rem;
+    background: var(--muted);
+    color: var(--muted-foreground);
+    border-radius: var(--radius-lg);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* -------------------------------------------------------------------------
+   8) ACCESSIBILITY PANEL (bottom-left, every page including Login)
+   ------------------------------------------------------------------------- */
+.accessibility-panel {
+    position: fixed;
+    bottom: var(--edge-padding);
+    left: var(--edge-padding);
+    z-index: 50;
+}
+
+.accessibility-btn {
+    width: 6rem;
+    height: 6rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--primary-solid);
+    color: var(--primary-solid);
+    font-size: 2.25rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* On very small screens a full 6rem (96px) button eats too much of the
+   viewport - scale it back down there while keeping it noticeably
+   bigger than the original size. */
+@media (max-width: 26rem) {
+    .accessibility-btn {
+        width: 4rem;
+        height: 4rem;
+        font-size: 1.5rem;
+    }
+}
+
+.accessibility-btn:hover {
+    background: var(--primary-solid);
+    color: var(--primary-foreground);
+}
+
+.accessibility-menu {
+    margin-bottom: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    overflow-y: auto;
+    max-height: 80vh;
+    width: 17.5rem;
+    max-width: calc(100vw - 3rem);
+}
+
+.accessibility-menu-title {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.accessibility-section {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+    .accessibility-section:last-child {
+        border-bottom: none;
+    }
+
+.accessibility-section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted-foreground);
+    margin: 0 0 0.5rem 0;
+}
+
+/* A row of choice buttons (font size / letter spacing / line height).
+   flex-wrap lets buttons drop to a second line rather than getting
+   squeezed to one word per line when text size is large or a wider
+   font (like OpenDyslexic) is selected. */
+.accessibility-choice-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.accessibility-option {
+    flex: 1 1 4.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.5rem 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--foreground);
+    text-align: center;
+}
+
+    .accessibility-option:hover {
+        background: var(--border);
+    }
+
+.accessibility-option-active {
+    background: var(--primary-solid);
+    border-color: var(--primary-solid);
+    color: var(--primary-foreground);
+}
+
+/* An on/off toggle row (dyslexia font / high contrast / reduce motion) */
+.accessibility-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.accessibility-toggle-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.accessibility-toggle-switch {
+    position: relative;
+    width: 2.75rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    background: var(--muted);
+    transition: background 0.15s ease;
+}
+
+    .accessibility-toggle-switch::after {
+        content: "";
+        position: absolute;
+        top: 0.125rem;
+        left: 0.125rem;
+        width: 1.125rem;
+        height: 1.125rem;
+        border-radius: 50%;
+        background: var(--card);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        transition: transform 0.15s ease;
+    }
+
+    .accessibility-toggle-switch[aria-pressed="true"] {
+        background: var(--primary-solid);
+        border-color: var(--primary-solid);
+    }
+
+        .accessibility-toggle-switch[aria-pressed="true"]::after {
+            transform: translateX(1.25rem);
+        }
+
+.accessibility-reset {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: none;
+    border: none;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--destructive);
+}
+
+    .accessibility-reset:hover {
+        background: var(--muted);
+    }
+
+/* ---- Font choice (accessibility panel: Default / Atkinson Hyperlegible / OpenDyslexic) ----
+   OpenDyslexic is self-hosted via Fontsource's CDN mirror (jsDelivr) since
+   it isn't on Google Fonts. Atkinson Hyperlegible IS on Google Fonts and
+   is loaded via a <link> tag in _Layout.cshtml / Login.cshtml instead. */
+@font-face {
+    font-family: 'OpenDyslexic';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff');
+}
+
+@font-face {
+    font-family: 'OpenDyslexic';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
+}
+
+.font-atkinson {
+    --font-family-base: 'Atkinson Hyperlegible', 'Segoe UI', Arial, sans-serif;
+}
+
+.font-opendyslexic {
+    --font-family-base: 'OpenDyslexic', 'Segoe UI', Arial, sans-serif;
+}
+
+/* ---- High contrast mode ---- */
+.high-contrast {
+    --border: #000000;
+    --muted-foreground: #000000;
+}
+
+.dark.high-contrast {
+    --border: #ffffff;
+    --muted-foreground: #ffffff;
+}
+
+.high-contrast .card,
+.high-contrast .field-input,
+.high-contrast .field-select,
+.high-contrast .field-textarea,
+.high-contrast .btn-secondary,
+.high-contrast .icon-btn,
+.high-contrast .login-card,
+.high-contrast .accessibility-menu,
+.high-contrast .mobile-menu {
+    border-width: 2px;
+}
+
+.high-contrast a,
+.high-contrast .link-button,
+.high-contrast .link-button-block {
+    text-decoration: underline;
+}
+
+/* ---- Reduce motion ---- */
+.reduce-motion,
+.reduce-motion * {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Baseline: also respect the OS-level "reduce motion" setting even if the
+   person never opens the accessibility panel at all. */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* ---- Highlight headings ---- */
+.highlight-headings h1,
+.highlight-headings h2,
+.highlight-headings h3,
+.highlight-headings h4 {
+    background: #fff3b0;
+    color: #000;
+    padding: 0.1em 0.4em;
+    border-radius: 0.25em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+/* ---- Highlight links ----
+   Only plain inline text links get highlighted - anything already
+   styled as a button/pill/card/nav-item is excluded, since highlighting
+   those would just double up on styling that's already there. */
+.highlight-links a:not(.btn-primary):not(.btn-secondary):not(.btn-pill):not(.nav-pill):not(.icon-btn):not(.icon-btn-primary):not(.floating-icon-btn):not(.action-btn):not(.mobile-menu-item):not(.recent-item):not(.search-result-item):not(.brand-logo) {
+    background: #fff3b0;
+    color: #000 !important;
+    text-decoration: underline;
+    padding: 0.05em 0.3em;
+    border-radius: 0.2em;
+}
+
+/* -------------------------------------------------------------------------
+   9) SHARED CARD / BADGE UTILITIES (used by Product, Recent, People screens)
+   ------------------------------------------------------------------------- */
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.badge-amber {
+    display: inline-block;
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber-text);
+    border-radius: var(--radius-full);
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.text-muted {
+    color: var(--muted-foreground);
+}
+
+.text-primary {
+    color: var(--primary);
+}
+
+/* -------------------------------------------------------------------------
+   10) HOME / SEARCH / FEATURE CARDS / RECENT SEARCHES / ADD PRODUCT
+   ------------------------------------------------------------------------- */
+.hero {
+    text-align: center;
+    padding: 4rem var(--edge-padding) 3rem;
+    background: linear-gradient(180deg, rgba(141, 214, 60, 0.12), transparent 60%);
+}
+
+.hero-eyebrow {
+    display: inline-block;
+    background: rgba(26, 122, 26, 0.1);
+    color: var(--primary-solid);
+    border-radius: var(--radius-full);
+    padding: 0.3rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.dark .hero-eyebrow {
+    background: rgba(34, 177, 42, 0.15);
+    color: var(--primary);
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 auto;
+    max-width: 43.75rem;
+}
+
+@media (min-width: 768px) {
+    .hero-title {
+        font-size: 3.75rem;
+    }
+}
+
+.hero-subtitle {
+    margin: 1.25rem auto 0;
+    max-width: 38.75rem;
+    font-size: 1.15rem;
+    color: var(--muted-foreground);
+}
+
+.search-wrapper {
+    max-width: 43.75rem;
+    margin: 2.5rem auto 0;
+}
+
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 0.5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+.scan-btn {
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.1rem;
+    border: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 10rem;
+    border: none;
+    background: transparent;
+    padding: 0.85rem 1rem;
+    font-size: 1.05rem;
+    color: var(--foreground);
+}
+
+    .search-input:focus {
+        outline: none;
+    }
+
+.search-btn {
+    flex-shrink: 0;
+}
+
+.hero-recent-link {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+    .hero-recent-link:hover {
+        color: var(--primary-solid);
+    }
+
+.search-results {
+    max-width: 43.75rem;
+    margin: 1.5rem auto 0;
+    text-align: left;
+}
+
+.search-results-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    margin-bottom: 0.5rem;
+}
+
+.search-results-list {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: var(--card);
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    border-top: 1px solid var(--border);
+}
+
+    .search-result-item:first-child {
+        border-top: none;
+    }
+
+    .search-result-item:hover {
+        background: var(--muted);
+    }
+
+.search-result-icon {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(26, 122, 26, 0.1);
+    border-radius: var(--radius-lg);
+}
+
+.search-result-text {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.search-result-name {
+    display: block;
+    font-weight: 600;
+}
+
+.search-result-meta {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+}
+
+.search-result-warning {
+    flex-shrink: 0;
+    color: #f59e0b;
+}
+
+.feature-grid {
+    max-width: 62.5rem;
+    margin: 0 auto;
+    padding: 3rem var(--edge-padding);
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.feature-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .feature-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-lg);
+    background: rgba(26, 122, 26, 0.1);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.page-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.recent-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.recent-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+    .recent-item:hover {
+        border-color: var(--primary);
+    }
+
+.recent-item-icon {
+    flex-shrink: 0;
+    width: 3.25rem;
+    height: 3.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--muted);
+    border-radius: var(--radius-lg);
+    font-size: 1.3rem;
+}
+
+.recent-item-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.recent-item-name {
+    font-weight: 700;
+}
+
+.recent-item-brand {
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.recent-item-upc {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 7.5rem;
+    gap: 0.75rem;
+}
+
+@media (max-width: 22rem) {
+    .field-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.link-inline {
+    text-decoration: underline;
+    font-weight: 700;
+}
+
+    .link-inline:hover {
+        color: var(--destructive);
+    }
+
+/* -------------------------------------------------------------------------
+   14) ADMIN DASHBOARD
+   ------------------------------------------------------------------------- */
+.dashboard-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-stat-card {
+    text-align: center;
+}
+
+.dashboard-stat-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.dashboard-stat-label {
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+    font-weight: 600;
+}
+
+.dashboard-section-title {
+    font-size: 1.3rem;
+    margin: 2rem 0 0.5rem;
+}
+
+/* -------------------------------------------------------------------------
+   15) BARCODE SCANNER
+   ------------------------------------------------------------------------- */
+.scan-status {
+    margin-top: 0.75rem;
+    text-align: center;
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+}
+
+/* -------------------------------------------------------------------------
+   13) MY PEOPLE
+   ------------------------------------------------------------------------- */
+.people-group-details {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--card);
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.people-group-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1.1rem;
+    list-style: none;
+}
+
+    .people-group-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .people-group-summary::after {
+        content: "\25BE";
+        margin-left: auto;
+        color: var(--muted-foreground);
+        font-weight: 400;
+    }
+
+.people-group-details[open] .people-group-summary::after {
+    content: "\25B4";
+}
+
+.people-group-count {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--muted-foreground);
+}
+
+.people-member-list {
+    border-top: 1px solid var(--border);
+    padding: 0.5rem 1.25rem;
+}
+
+.people-member-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--border);
+}
+
+    .people-member-row:first-child {
+        border-top: none;
+    }
+
+.people-member-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.people-member-name {
+    font-weight: 600;
+}
+
+.people-member-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+}
+
+.people-member-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.icon-btn-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-lg);
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    font-size: 0.95rem;
+    transition: background 0.15s ease;
+}
+
+    .icon-btn-small:hover {
+        background: var(--muted);
+    }
+
+    .icon-btn-small.icon-btn-danger {
+        color: var(--destructive);
+        border-color: var(--destructive);
+    }
+
+        .icon-btn-small.icon-btn-danger:hover {
+            background: var(--warning-bg);
+        }
+
+.add-to-group-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+
+/* ---- Add/Edit Person form: flat allergen checkbox grid ----
+   Simpler than the product Edit screen's Contains/May-Contain split -
+   a person just has one flat list of allergies, so a plain visible grid
+   (reusing the same checklist-item look) is clearer than hiding it
+   behind a dropdown for just one list. */
+.allergen-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* -------------------------------------------------------------------------
+   12) PRODUCT INFO / EDIT / HISTORY
+   ------------------------------------------------------------------------- */
+
+/* ---- Shared 3-column layout (Info: image | details | nutrition; Edit:
+   image+upload | form | nutrition+seals) - stacks to one column until
+   there's enough room for all three side by side. ---- */
+.product-layout,
+.edit-layout {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    align-items: start;
+}
+
+@media (min-width: 64rem) {
+    .product-layout {
+        grid-template-columns: 18rem 1fr 20rem;
+    }
+
+    .edit-layout {
+        grid-template-columns: 16rem 1fr 23rem;
+    }
+}
+
+/* ---- Product image ---- */
+.product-image-frame {
+    width: 100%;
+    max-width: 21rem;
+    aspect-ratio: 1 / 1;
+    max-height: 21rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .product-image-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.product-image-placeholder {
+    font-size: 3rem;
+    color: var(--muted-foreground);
+}
+
+.image-upload-box {
+    margin-top: 1rem;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+    text-align: center;
+}
+
+    .image-upload-box .field-label {
+        margin-top: 0;
+        text-align: left;
+    }
+
+.mock-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.65rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background 0.15s ease;
+}
+
+    .mock-upload-btn:hover {
+        background: var(--muted);
+    }
+
+.image-upload-or {
+    margin: 0.6rem 0;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ---- Product details ---- */
+.product-upc {
+    font-family: 'Courier New', monospace;
+    color: var(--muted-foreground);
+    font-size: 1rem;
+}
+
+.product-name {
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-top: 0.15rem;
+}
+
+.product-brand {
+    color: var(--muted-foreground);
+    font-size: 1.1rem;
+    margin-top: 0.15rem;
+}
+
+.product-netcontent {
+    font-size: 1.05rem;
+    margin-top: 0.4rem;
+    color: var(--foreground);
+}
+
+.allergen-box {
+    border: 3px dashed var(--warning-border);
+    background: var(--warning-bg);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    margin-top: 1.25rem;
+}
+
+    .allergen-box h3 {
+        margin-bottom: 0.6rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .allergen-box p {
+        font-size: 1.2rem;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+        .allergen-box p + p {
+            margin-top: 0.6rem;
+        }
+
+.ingredients-card {
+    margin-top: 1.25rem;
+}
+
+    .ingredients-card h3 {
+        margin-bottom: 0.4rem;
+        font-size: 1.15rem;
+    }
+
+    .ingredients-card p {
+        line-height: 1.7;
+        color: var(--foreground);
+    }
+
+/* ---- Nutrition Facts table (view mode) ---- */
+.nutrition-card {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.nutrition-header {
+    background: var(--foreground);
+    color: var(--background);
+    padding: 0.9rem 1.1rem;
+}
+
+.dark .nutrition-header {
+    background: var(--muted);
+    color: var(--foreground);
+}
+
+.nutrition-header-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.nutrition-header-sub {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.nutrition-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .nutrition-table td {
+        padding: 0.7rem 1.2rem;
+        border-top: 1px solid var(--border);
+        font-size: 1.05rem;
+    }
+
+    .nutrition-table tr:first-child td {
+        border-top: none;
+    }
+
+    .nutrition-table tr:nth-child(even) {
+        /* A low-opacity neutral overlay rather than var(--muted) - that
+       variable is the SAME color as the dark-mode header bar below,
+       which made zebra-striped rows look like part of the header. This
+       stays clearly distinct from the header in both light and dark
+       mode while still giving a subtle row-to-row visual separation. */
+        background: rgba(128, 128, 128, 0.12);
+    }
+
+    .nutrition-table td:first-child {
+        border-right: 1px solid var(--border);
+        font-weight: 600;
+    }
+
+.nutrition-row-indented td:first-child {
+    padding-left: 2.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.nutrition-value {
+    text-align: right;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.nutrition-unit {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    font-weight: 400;
+}
+
+/* ---- Nutrition Facts (edit mode - same shell, input replaces static text) ---- */
+.nutrition-edit-input {
+    width: 5.25rem;
+    text-align: right;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--input-background);
+    color: var(--foreground);
+    font-size: 1rem;
+}
+
+/* ---- Warning seals ---- */
+.seals-panel {
+    /* Deliberately a fixed mid-grey, not a theme variable - the seals
+       inside are always black/white regardless of light/dark mode, so
+       this panel needs to stay a consistent neutral backdrop in both
+       modes too (a black octagon on the near-black dark background
+       would otherwise be nearly invisible). Mid-grey rather than a pale
+       light grey so it doesn't look out of place / too bright next to
+       the dark theme. */
+    background: #4b4b4b;
+    border-radius: var(--radius-xl);
+    padding: 1.1rem;
+    margin-top: 1rem;
+}
+
+.seals-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.seal-octagon {
+    width: 5.5rem;
+    height: 5.5rem;
+    flex-shrink: 0;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.2;
+    padding: 0.5rem;
+    white-space: pre-line;
+}
+
+.seals-rects-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.seal-rect {
+    flex: 1 1 9rem;
+    background: #000;
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: 0.6rem 0.8rem;
+    text-align: center;
+}
+
+.seal-rect-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.seal-rect-sub {
+    font-size: 0.7rem;
+    opacity: 0.75;
+    margin-top: 0.15rem;
+}
+
+/* ---- Seal editor (Edit screen - all 8, as checkboxes) ---- */
+.seal-editor-card {
+    margin-top: 1.5rem;
+}
+
+.seal-editor-title {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.seal-editor-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    background: #4b4b4b;
+    border-radius: var(--radius-lg);
+    padding: 0.9rem;
+}
+
+.seal-editor-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    text-align: center;
+    width: 5.5rem;
+}
+
+/* The rectangular seals (Caffeine/Sweeteners) never fit two per row in
+   this column regardless of width, so they may as well use the full row
+   width rather than sitting at a fixed size with empty space beside
+   them - also gives their two-line text more comfortable room. */
+.seal-editor-item-rect {
+    flex: 1 1 100%;
+}
+
+.seal-editor-item .seal-rect {
+    width: 100%;
+    flex: none;
+}
+
+/* Custom checkbox for each seal toggle: a plain grey square when off,
+   solid green with a white checkmark when on - clearer at a glance than
+   a default browser checkbox, and still a real native checkbox (no JS
+   needed), so clicking anywhere on the label - including the badge
+   itself - toggles it. */
+.seal-editor-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    border-radius: 0.35rem;
+    border: 2px solid var(--muted-foreground);
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+}
+
+    .seal-editor-item input[type="checkbox"]:checked {
+        background: var(--primary-solid);
+        border-color: var(--primary-solid);
+    }
+
+        .seal-editor-item input[type="checkbox"]:checked::after {
+            content: "\2713";
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+    .seal-editor-item input[type="checkbox"]:hover {
+        border-color: var(--primary-solid);
+    }
+
+    .seal-editor-item input[type="checkbox"]:focus-visible {
+        outline: 3px solid var(--primary);
+        outline-offset: 2px;
+    }
+
+/* ---- My People panel (Product Info, user role only) ---- */
+.people-panel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+}
+
+.people-panel-title {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+}
+
+.people-group {
+    border-top: 1px solid var(--border);
+    padding: 0.75rem 0;
+}
+
+    .people-group:first-of-type {
+        border-top: none;
+    }
+
+.people-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.people-affected-badge {
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: var(--radius-full);
+    padding: 0.1rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.dark .people-affected-badge {
+    background: #450a0a;
+    color: #fca5a5;
+}
+
+.people-member-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    font-size: 0.9rem;
+}
+
+.people-status-icon {
+    flex-shrink: 0;
+    font-size: 0.9rem;
+}
+
+.people-status-danger .people-status-icon {
+    color: var(--destructive);
+}
+
+.people-status-caution .people-status-icon {
+    color: #d97706;
+}
+
+.people-status-safe .people-status-icon {
+    color: var(--primary);
+}
+
+.people-member-note {
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.people-member-row.people-status-danger .people-member-note {
+    color: var(--destructive);
+}
+
+.people-member-row.people-status-caution .people-member-note {
+    color: #d97706;
+}
+
+/* ---- Product Info action bar (Edit / Edit History / Delete) ---- */
+.action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+    min-height: 2.75rem;
+}
+
+.action-btn-edit {
+    background: var(--primary-solid);
+    color: #fff;
+}
+
+.action-btn-history {
+    background: var(--card);
+    color: var(--foreground);
+    border-color: var(--border);
+}
+
+    .action-btn-history:hover,
+    .action-btn-edit:hover {
+        filter: brightness(1.08);
+    }
+
+.action-btn-delete {
+    background: transparent;
+    color: var(--destructive);
+    border-color: var(--destructive);
+}
+
+    .action-btn-delete:hover {
+        background: var(--warning-bg);
+    }
+
+.action-btn .count-badge {
+    margin-left: 0.1rem;
+}
+
+.count-badge {
+    background: var(--destructive);
+    color: #fff;
+    border-radius: 50%;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.3rem;
+    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ---- Edit form: allergen checklist dropdowns ----
+   Native <details>/<summary> - fully keyboard accessible and announced
+   correctly by screen readers with no custom ARIA needed, unlike a
+   from-scratch dropdown widget would require. */
+.allergen-dropdown {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--input-background);
+    margin-bottom: 0.75rem;
+}
+
+.allergen-dropdown-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none;
+}
+
+    .allergen-dropdown-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .allergen-dropdown-summary::after {
+        content: "\25BE";
+        margin-left: auto;
+        color: var(--muted-foreground);
+        flex-shrink: 0;
+    }
+
+.allergen-dropdown[open] .allergen-dropdown-summary::after {
+    content: "\25B4";
+}
+
+.allergen-dropdown-count {
+    color: var(--muted-foreground);
+    font-weight: 400;
+    font-size: 0.85rem;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 55%;
+}
+
+.allergen-checklist {
+    max-height: 14rem;
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+    padding: 0.5rem;
+}
+
+.allergen-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+    .allergen-checklist-item:hover {
+        background: var(--muted);
+    }
+
+    .allergen-checklist-item input[type="checkbox"] {
+        width: 1.15rem;
+        height: 1.15rem;
+        accent-color: var(--primary-solid);
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+    /* Applied by JS when the matching "Contains" checkbox is checked - the
+   "May Contain" row becomes visibly unavailable rather than just quietly
+   disabled, per the same principle as the reduce-motion/high-contrast
+   toggles: state changes should be obvious, not subtle. */
+    .allergen-checklist-item.is-disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+        .allergen-checklist-item.is-disabled:hover {
+            background: none;
+        }
+
+        .allergen-checklist-item.is-disabled input[type="checkbox"] {
+            cursor: not-allowed;
+        }
+
+/* ---- Edit History table ---- */
+.history-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 40rem;
+}
+
+    .history-table th,
+    .history-table td {
+        padding: 0.7rem 0.9rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9rem;
+    }
+
+    .history-table th {
+        background: var(--muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.03em;
+        color: var(--muted-foreground);
+    }
+
+    .history-table tbody tr:nth-child(even) {
+        background: var(--muted);
+    }
+
+    .history-table tbody tr:hover {
+        background: rgba(26, 122, 26, 0.06);
+    }
+
+.dark .history-table tbody tr:hover {
+    background: rgba(34, 177, 42, 0.1);
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.history-value-cell {
+    max-width: 12rem;
+}
+
+.truncate-value {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+    cursor: pointer;
+}
+
+    .truncate-value:hover {
+        text-decoration: underline;
+    }
+
+    .truncate-value.expanded {
+        white-space: normal;
+        word-break: break-word;
+        overflow: visible;
+    }
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-approved {
+    background: rgba(26, 122, 26, 0.12);
+    color: var(--primary-solid);
+}
+
+.status-denied {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.dark .status-pending {
+    background: #451a03;
+    color: #fbbf24;
+}
+
+.dark .status-approved {
+    background: rgba(34, 177, 42, 0.15);
+    color: var(--primary);
+}
+
+.dark .status-denied {
+    background: #450a0a;
+    color: #fca5a5;
+}
+
+.history-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+    .history-actions form {
+        display: inline;
+    }
+
+.btn-approve {
+    background: var(--primary-solid);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.btn-deny {
+    background: transparent;
+    color: var(--destructive);
+    border: 1px solid var(--destructive);
+    border-radius: var(--radius-lg);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+@media (max-width: 26rem) {
+    .action-bar {
+        flex-direction: column;
+    }
+
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   11) MOBILE / RESPONSIVE
+   Most components above already use flexible units (rem, %, auto-fit
+   grids) so they naturally reflow. This section handles the remaining
+   cases that need an explicit breakpoint: narrow-portrait phones (where
+   horizontal space is scarce) and short-landscape phones (where
+   VERTICAL space is scarce instead - a different problem that a plain
+   width breakpoint doesn't catch).
+   ------------------------------------------------------------------------- */
+
+/* Narrow portrait phones: stack the search box instead of letting the
+   button awkwardly wrap onto its own line. */
+@media (max-width: 30rem) {
+    .search-form {
+        flex-direction: column;
+    }
+
+    .search-btn {
+        width: 100%;
+    }
+
+    .login-card {
+        padding: 1.75rem 1.5rem;
+    }
+
+    .hero {
+        padding: 2.5rem var(--edge-padding) 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.05rem;
+    }
+}
+
+/* Short-landscape phones (wider than tall, but with limited vertical
+   room) - the concern here isn't width, it's height: a centered login
+   card or a tall hero section can get clipped above/below the visible
+   area. Reduce vertical padding and let content sit at the top rather
+   than perfectly centered. */
+@media (orientation: landscape) and (max-height: 32rem) {
+    .login-wrapper {
+        min-height: 0;
+        align-items: flex-start;
+        padding: 1rem var(--edge-padding);
+    }
+
+    .login-card {
+        padding: 1.5rem;
+    }
+
+    .login-header {
+        margin-bottom: 0.75rem;
+    }
+
+    .hero {
+        padding: 1.75rem var(--edge-padding) 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+    }
+
+    .hero-subtitle {
+        margin-top: 0.5rem;
+    }
+
+    .search-wrapper {
+        margin-top: 1.25rem;
+    }
+
+    /* The accessibility panel can be taller than the viewport itself on
+       a short landscape phone - cap it explicitly rather than relying
+       only on the 80vh default, and let it scroll internally. */
+    .accessibility-menu {
+        max-height: calc(100vh - 5rem);
+    }
+}
+
+/* Very small phones in portrait (older/smaller devices, or a phone in
+   a multitasking split-screen view) - tighten page padding further so
+   content isn't fighting the edges of the screen for room. */
+@media (max-width: 22rem) {
+    .page-container,
+    .page-container-narrow {
+        padding: 1.5rem 1rem;
+    }
+
+    .accessibility-menu {
+        width: calc(100vw - 3rem);
+    }
+}

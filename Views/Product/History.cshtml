@@ -1,0 +1,83 @@
+﻿@model PIV11.Models.ViewModels.EditHistoryViewModel
+@{
+    ViewBag.ActiveScreen = "Product Info";
+    ViewBag.ShowBack = true;
+    ViewBag.BackToProductInfo = true;
+    ViewBag.Title = "Edit History - " + Model.ProductName;
+}
+
+<div class="page-container">
+    <h2>Edit History</h2>
+    <p class="text-muted" style="margin-bottom: 1.5rem;">Proposed changes to &ldquo;@Model.ProductName&rdquo; (@Model.UPC).</p>
+
+    @if (Model.Records.Count == 0)
+    {
+        <p class="text-muted empty-state">No edits have been proposed for this product yet.</p>
+    }
+    else
+    {
+        <div class="history-table-wrap">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th scope="col">User</th>
+                        <th scope="col">Field</th>
+                        <th scope="col">New Value</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var record in Model.Records)
+                    {
+                        <tr>
+                            <td>@record.EditedByUser</td>
+                            <td>@record.FieldChanged</td>
+                            <td class="history-value-cell">
+                                <span class="truncate-value" tabindex="0" role="button"
+                                      aria-label="Click to see the full value" title="@record.NewValue">@record.NewValue</span>
+                                </td>
+                                <td>@record.DateEdited.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    @if (record.Status == "approved")
+                                    {
+                                        <span class="status-badge status-approved">&#10003; Approved</span>
+                                    }
+                                    else if (record.Status == "denied")
+                                    {
+                                        <span class="status-badge status-denied">&#10007; Denied</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-pending">&#128337; Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (record.Status == "pending")
+                                    {
+                                        <div class="history-actions">
+                                            @using (Html.BeginForm("ApproveEdit", "Product", new { editId = record.EditID, upc = Model.UPC }, FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn-approve">Approve</button>
+                                            }
+                                            @using (Html.BeginForm("DenyEdit", "Product", new { editId = record.EditID, upc = Model.UPC }, FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn-deny">Deny</button>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">&mdash;</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

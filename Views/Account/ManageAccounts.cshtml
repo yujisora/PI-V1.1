@@ -1,0 +1,73 @@
+﻿@model System.Collections.Generic.List<PIV11.Models.User>
+@{
+    ViewBag.ActiveScreen = "Home";
+    ViewBag.Title = "Manage Accounts";
+}
+
+<div class="page-container">
+    <h2>Manage Accounts</h2>
+    <p class="text-muted" style="margin-bottom: 1.5rem;">Every account registered in the system.</p>
+
+    @if (TempData["AccountDeleteMessage"] != null)
+    {
+        <p class="form-error" role="status" style="color: var(--primary-solid);">@TempData["AccountDeleteMessage"]</p>
+    }
+    @if (TempData["AccountDeleteError"] != null)
+    {
+        <p class="form-error" role="alert">@TempData["AccountDeleteError"]</p>
+    }
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <p class="text-muted empty-state">No accounts found.</p>
+    }
+    else
+    {
+        <div class="history-table-wrap">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Member ID</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var account in Model)
+                    {
+                        string roleBadgeClass = account.Role == "admin" ? "status-approved"
+                                               : account.Role == "employee" ? "status-pending"
+                                               : "status-denied";
+                        string roleLabel = account.Role.Length > 0
+                            ? char.ToUpper(account.Role[0]) + account.Role.Substring(1)
+                            : account.Role;
+
+                        <tr>
+                            <td>@(string.IsNullOrEmpty(account.DisplayName) ? "\u2014" : account.DisplayName)</td>
+                            <td>@account.UserID</td>
+                            <td><span class="status-badge @roleBadgeClass">@roleLabel</span></td>
+                            <td>@(string.IsNullOrEmpty(account.MemberID) ? "\u2014" : account.MemberID)</td>
+                            <td>
+                                @if (account.Role == "admin")
+                                {
+                                    <span class="text-muted" style="font-size: 0.85rem;">Protected</span>
+                                }
+                                else
+                                {
+                                    using (Html.BeginForm("DeleteAccount", "Account", new { userId = account.UserID }, FormMethod.Post,
+                                        new { onsubmit = "return confirm('Delete this account permanently? This also removes their My People data. This cannot be undone.');" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-deny">Delete</button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

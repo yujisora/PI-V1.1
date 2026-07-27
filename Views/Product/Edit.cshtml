@@ -1,0 +1,255 @@
+﻿@model PIV11.Models.ViewModels.EditProductViewModel
+@using PIV11.Infrastructure
+@{
+    ViewBag.ActiveScreen = "Edit";
+    ViewBag.ShowBack = true;
+    ViewBag.ShowSave = true;
+    ViewBag.SaveFormId = "editProductForm";
+    ViewBag.BackToProductInfo = true;
+    ViewBag.Title = "Edit " + Model.ProductName;
+}
+
+<div class="page-container">
+    @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
+
+    @using (Html.BeginForm("Edit", "Product", FormMethod.Post, new { id = "editProductForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="edit-layout">
+
+            <!-- Left column: Image -->
+            <!-- Columna izquierda: Imagen -->
+            <section>
+                <div class="product-image-frame">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="" />
+                    }
+                    else
+                    {
+                        <span class="product-image-placeholder" aria-hidden="true">&#128230;</span>
+                    }
+                </div>
+                <div class="image-upload-box">
+                    <button type="button" class="mock-upload-btn">
+                        <span aria-hidden="true">&#128193;</span> Add File
+                    </button>
+                    <p class="image-upload-or">or</p>
+                    <label class="field-label" for="ImageUrl">Add Image Link</label>
+                    <input class="field-input" type="text" id="ImageUrl" name="ImageUrl" value="@Model.ImageUrl"
+                           placeholder="https://..." title="A link to an image of the product" />
+                </div>
+            </section>
+
+            <!-- Columna central: información general (datos, alérgenos, ingredientes) -->
+            <!-- Centre column: general info (main info, allergens, ingredients) -->
+            <section class="card">
+                <div class="field-row" style="grid-template-columns: 1fr 11rem;">
+                    <div>
+                        <label class="field-label" for="UpcDisplay" style="margin-top: 0;">EAN/UPC</label>
+                        <input class="field-input" type="text" id="UpcDisplay" value="@Model.UPC" name="UPC" readonly
+                               title="The barcode can't be changed after a product is created; delete the product and create a new one" aria-describedby="upcReadonlyHint" />
+                        <p id="upcReadonlyHint" class="field-hint">Can't be changed after a product is created.</p>
+                    </div>
+                    <div>
+                        <label class="field-label" style="margin-top: 0;">Contents</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input class="field-input" type="text" id="Weight" name="Weight" value="@Model.Weight"
+                                   title="Net weight or volume, as printed on the package" aria-describedby="editWeightHint"
+                                   style="min-width: 0;" />
+                            <select class="field-select" id="Unit" name="Unit" title="The unit matching the weight/volume above" style="flex-shrink: 0; width: 5rem;">
+                                <option value="g" @(Model.Unit == "g" ? "selected" : "")>g</option>
+                                <option value="ml" @(Model.Unit == "ml" ? "selected" : "")>ml</option>
+                                <option value="pcs" @(Model.Unit == "pcs" ? "selected" : "")>pcs</option>
+                            </select>
+                        </div>
+                        <p id="editWeightHint" class="field-hint">Number and unit from the package label.</p>
+                    </div>
+                </div>
+
+                <label class="field-label" for="ProductName">Product Name</label>
+                <input class="field-input" type="text" id="ProductName" name="ProductName" value="@Model.ProductName"
+                       title="The product's full name" aria-describedby="editNameHint" />
+                <p id="editNameHint" class="field-hint">The full name as printed on the front of the package.</p>
+
+                <label class="field-label" for="Brand">Brand</label>
+                <input class="field-input" type="text" id="Brand" name="Brand" value="@Model.Brand"
+                       title="The manufacturer or brand name" aria-describedby="editBrandHint" />
+                <p id="editBrandHint" class="field-hint">Optional &ndash; the manufacturer or brand name.</p>
+
+                <label class="field-label" style="margin-top: 1.25rem;">Allergens</label>
+                <p class="field-hint" style="margin-top: 0;">Open each list to check which allergens apply. Checking one as &ldquo;Contains&rdquo; removes it from the &ldquo;May Contain&rdquo; list, since a product can't be both for the same allergen.</p>
+
+                <details class="allergen-dropdown" id="containsDropdown">
+                    <summary class="allergen-dropdown-summary">
+                        Allergens (Contains)
+                        <span class="allergen-dropdown-count" id="containsSummaryText">None selected</span>
+                    </summary>
+                    <div class="allergen-checklist">
+                        @foreach (var ak in AllergenHelper.Keys)
+                        {
+                            <label class="allergen-checklist-item" data-allergen-label="@ak.DisplayName">
+                                <input type="checkbox" name="Contains_@ak.Key" value="true"
+                                       data-allergen-key="@ak.Key" data-role="contains"
+                                       @(Model.GetContains(ak.Key) ? "checked" : "") />
+                                @ak.DisplayName
+                            </label>
+                        }
+                    </div>
+                </details>
+
+                <details class="allergen-dropdown" id="mayContainDropdown">
+                    <summary class="allergen-dropdown-summary">
+                        Allergens (May Contain)
+                        <span class="allergen-dropdown-count" id="mayContainSummaryText">None selected</span>
+                    </summary>
+                    <div class="allergen-checklist">
+                        @foreach (var ak in AllergenHelper.Keys)
+                        {
+                            <label class="allergen-checklist-item" data-allergen-label="@ak.DisplayName">
+                                <input type="checkbox" name="MayContain_@ak.Key" value="true"
+                                       data-allergen-key="@ak.Key" data-role="maycontain"
+                                       @(Model.GetMayContain(ak.Key) ? "checked" : "") />
+                                @ak.DisplayName
+                            </label>
+                        }
+                    </div>
+                </details>
+
+                <label class="field-label" for="Ingredients">Ingredients</label>
+                <textarea class="field-textarea" id="Ingredients" name="Ingredients"
+                          title="The full ingredients list" aria-describedby="editIngredientsHint">@Model.Ingredients</textarea>
+                <p id="editIngredientsHint" class="field-hint">The full ingredients list, exactly as printed on the package.</p>
+
+                <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">Save Changes</button>
+            </section>
+
+            <!-- Right column: nutrition facts + warning seals -->
+            <!-- Columna Izquierda: Información nutrimental y -->
+            <aside>
+                <div class="nutrition-card">
+                    <div class="nutrition-header">
+                        <p class="nutrition-header-title">Nutrition Facts</p>
+                        <p class="nutrition-header-sub">Per 100 g/ml, as shown on the label</p>
+                    </div>
+                    <table class="nutrition-table" aria-label="Edit nutrition facts">
+                        <tbody>
+                            <tr>
+                                <td><label for="Calories">Calories</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="Calories" name="Calories" value="@Model.Calories" />
+                                    <span class="nutrition-unit">kcal</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="Fats">Total Fat</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="Fats" name="Fats" value="@Model.Fats" />
+                                    <span class="nutrition-unit">g</span>
+                                </td>
+                            </tr>
+                            <tr class="nutrition-row-indented">
+                                <td><label for="SaturatedFats">Saturated Fat</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="SaturatedFats" name="SaturatedFats" value="@Model.SaturatedFats" />
+                                    <span class="nutrition-unit">g</span>
+                                </td>
+                            </tr>
+                            <tr class="nutrition-row-indented">
+                                <td><label for="TransFats">Trans Fat</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="TransFats" name="TransFats" value="@Model.TransFats" />
+                                    <span class="nutrition-unit">g</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="Carbs">Carbohydrates</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="Carbs" name="Carbs" value="@Model.Carbs" />
+                                    <span class="nutrition-unit">g</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="Sugars">Sugars</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="Sugars" name="Sugars" value="@Model.Sugars" />
+                                    <span class="nutrition-unit">g</span>
+                                </td>
+                            </tr>
+                            <tr class="nutrition-row-indented">
+                                <td><label for="AddedSugars">Added Sugars</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="AddedSugars" name="AddedSugars" value="@Model.AddedSugars" />
+                                    <span class="nutrition-unit">g</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="Fiber">Dietary Fiber</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="Fiber" name="Fiber" value="@Model.Fiber" />
+                                    <span class="nutrition-unit">g</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="Proteins">Proteins</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="Proteins" name="Proteins" value="@Model.Proteins" />
+                                    <span class="nutrition-unit">g</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="Sodium">Sodium</label></td>
+                                <td class="nutrition-value">
+                                    <input class="nutrition-edit-input" type="number" min="0" id="Sodium" name="Sodium" value="@Model.Sodium" />
+                                    <span class="nutrition-unit">mg</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="seal-editor-card">
+                    <p class="seal-editor-title">Warning Seals</p>
+                    <p class="field-hint" style="margin-top: -0.5rem; margin-bottom: 1rem;">Check any warning that applies to this product.</p>
+                    <div class="seal-editor-grid">
+                        <label class="seal-editor-item">
+                            <div class="seal-octagon">Excess&#10;Calories</div>
+                            <input type="checkbox" name="ExCalories" value="true" @(Model.ExCalories ? "checked" : "") />
+                        </label>
+                        <label class="seal-editor-item">
+                            <div class="seal-octagon">Excess&#10;Saturated Fats</div>
+                            <input type="checkbox" name="ExSatFat" value="true" @(Model.ExSatFat ? "checked" : "") />
+                        </label>
+                        <label class="seal-editor-item">
+                            <div class="seal-octagon">Excess&#10;Trans Fats</div>
+                            <input type="checkbox" name="ExTrFat" value="true" @(Model.ExTrFat ? "checked" : "") />
+                        </label>
+                        <label class="seal-editor-item">
+                            <div class="seal-octagon">Excess&#10;Sugars</div>
+                            <input type="checkbox" name="ExSugars" value="true" @(Model.ExSugars ? "checked" : "") />
+                        </label>
+                        <label class="seal-editor-item">
+                            <div class="seal-octagon">Excess&#10;Sodium</div>
+                            <input type="checkbox" name="ExSod" value="true" @(Model.ExSod ? "checked" : "") />
+                        </label>
+                        <label class="seal-editor-item seal-editor-item-rect">
+                            <div class="seal-rect">
+                                <p class="seal-rect-label">Contains Caffeine</p>
+                                <p class="seal-rect-sub">Avoid in children</p>
+                            </div>
+                            <input type="checkbox" name="HasCaffeine" value="true" @(Model.HasCaffeine ? "checked" : "") />
+                        </label>
+                        <label class="seal-editor-item seal-editor-item-rect">
+                            <div class="seal-rect">
+                                <p class="seal-rect-label">Contains Sweeteners</p>
+                                <p class="seal-rect-sub">Not recommended in children</p>
+                            </div>
+                            <input type="checkbox" name="HasSweeteners" value="true" @(Model.HasSweeteners ? "checked" : "") />
+                        </label>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    }
+</div>

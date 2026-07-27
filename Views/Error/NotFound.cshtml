@@ -1,0 +1,38 @@
+﻿@{
+    Layout = null;
+    ViewBag.Title = "Page Not Found - FoodScan";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/site.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible&family=Lexend:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <script>
+        (function () {
+            var html = document.documentElement;
+            var darkPref = localStorage.getItem('foodscan-dark');
+            var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (darkPref === 'true' || (darkPref === null && systemPrefersDark)) html.classList.add('dark');
+        })();
+    </script>
+</head>
+<body class="login-body">
+    <main class="login-wrapper">
+        <div class="login-card" style="text-align: center;">
+            <div class="login-header">
+                <h1 class="brand-logo">Food<span class="brand-accent">Scan</span></h1>
+            </div>
+            <p style="font-size: 4rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0;">404</p>
+            <h2 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Page not found</h2>
+            <p class="text-muted" style="margin-bottom: 1.5rem;">
+                The page you're looking for doesn't exist, or the link may be out of date.
+            </p>
+            <a href="@Url.Action("Index", "Home")" class="btn-primary btn-full btn-large">Back to Home</a>
+        </div>
+    </main>
+</body>
+</html>

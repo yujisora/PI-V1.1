@@ -1,0 +1,123 @@
+﻿@{
+        // Standalone page, same pattern as Login.cshtml - no _Layout, since this is reachable by anyone who isn't logged in yet.
+        // Pagina no usa _Layout; igual que Login.cshtml.
+
+    Layout = null;
+    ViewBag.Title = "Create Account - FoodScan";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/site.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible&family=Lexend:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <script>
+        (function () {
+            var html = document.documentElement;
+            var darkPref = localStorage.getItem('foodscan-dark');
+            var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (darkPref === 'true' || (darkPref === null && systemPrefersDark)) html.classList.add('dark');
+
+            if (localStorage.getItem('foodscan-contrast') === 'true') html.classList.add('high-contrast');
+            if (localStorage.getItem('foodscan-motion') === 'true') html.classList.add('reduce-motion');
+            if (localStorage.getItem('foodscan-highlight-headings') === 'true') html.classList.add('highlight-headings');
+            if (localStorage.getItem('foodscan-highlight-links') === 'true') html.classList.add('highlight-links');
+
+            var fontChoice = localStorage.getItem('foodscan-font') || 'default';
+            if (fontChoice === 'atkinson') html.classList.add('font-atkinson');
+            else if (fontChoice === 'opendyslexic') html.classList.add('font-opendyslexic');
+
+            var fontSize = localStorage.getItem('foodscan-fontsize') || '100';
+            html.style.setProperty('--font-size', fontSize === '150' ? '24px' : fontSize === '200' ? '32px' : '16px');
+
+            var spacing = localStorage.getItem('foodscan-spacing') || 'normal';
+            html.style.setProperty('--letter-spacing', spacing === 'wide' ? '0.05em' : spacing === 'wider' ? '0.1em' : 'normal');
+
+            var lineHeight = localStorage.getItem('foodscan-lineheight') || 'normal';
+            html.style.setProperty('--line-height-base', lineHeight === 'relaxed' ? '1.8' : lineHeight === 'loose' ? '2.1' : '1.5');
+        })();
+    </script>
+</head>
+<body class="login-body">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <div class="login-top-actions">
+        <button type="button" id="darkModeToggle" class="floating-icon-btn" aria-label="Switch to dark mode">
+            <span id="darkModeIcon" aria-hidden="true">&#9789;</span>
+        </button>
+    </div>
+
+    <main id="main-content" class="login-wrapper">
+        <div class="login-card register-card">
+
+            <div class="login-header">
+                <h1 class="brand-logo">Food<span class="brand-accent">Scan</span></h1>
+                <p class="login-subtitle">Create your shopper account</p>
+            </div>
+
+            @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
+
+            @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { autocomplete = "off" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <label class="field-label" for="username">Username</label>
+                <input type="text" id="username" name="username" class="field-input"
+                       placeholder="Choose a username" autocomplete="username"
+                       title="This is what you'll log in with" aria-describedby="usernameRegHint" />
+                <p id="usernameRegHint" class="field-hint">This is what you'll type to log in - can't be changed later.</p>
+
+                <label class="field-label" for="displayName">Your Name</label>
+                <input type="text" id="displayName" name="displayName" class="field-input"
+                       placeholder="e.g. Maria" title="How your name appears in the app" aria-describedby="displayNameHint" />
+                <p id="displayNameHint" class="field-hint">Optional - shown in the app instead of your username.</p>
+
+                <label class="field-label" for="memberId">Shopper ID</label>
+                <input type="text" id="memberId" name="memberId" class="field-input"
+                       placeholder="e.g. a loyalty/member number" title="Optional shopper ID" aria-describedby="memberIdHint" />
+                <p id="memberIdHint" class="field-hint">Optional - a loyalty or membership number, if you have one.</p>
+
+                <label class="field-label" for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="field-input"
+                           placeholder="Choose a password" autocomplete="new-password"
+                           title="Your new password" />
+                    <button type="button" id="togglePasswordBtn" class="password-toggle-btn"
+                            aria-pressed="false" aria-controls="password">
+                        Show
+                    </button>
+                </div>
+
+                <label class="field-label" for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="field-input"
+                       placeholder="Type it again" autocomplete="new-password" title="Confirm your password" />
+
+                <button type="submit" class="btn-primary btn-full btn-large" style="margin-top: 1.5rem;">Create Account</button>
+            }
+
+            <div class="login-footer">
+                <p class="text-muted" style="font-size: 0.875rem;">Already have an account?</p>
+                <a href="@Url.Action("Login", "Account")" class="link-button-block">Log in instead</a>
+                <a href="@Url.Action("Index", "Home")" class="link-button-block">Back</a>
+            </div>
+
+        </div>
+    </main>
+
+    @Html.Partial("_AccessibilityPanel")
+
+    <script src="~/Scripts/site.js"></script>
+    <script>
+        document.getElementById('togglePasswordBtn').addEventListener('click', function () {
+            var pw = document.getElementById('password');
+            var isHidden = pw.type === 'password';
+            pw.type = isHidden ? 'text' : 'password';
+            this.textContent = isHidden ? 'Hide' : 'Show';
+            this.setAttribute('aria-pressed', isHidden.toString());
+        });
+    </script>
+</body>
+</html>
