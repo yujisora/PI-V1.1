@@ -1756,10 +1756,37 @@ input, select, textarea {
     opacity: 0.8;
 }
 
-.portion-calculator {
-    padding: 0.9rem 1.1rem;
+.portion-calculator-details {
     border-bottom: 1px solid var(--border);
-    background: var(--muted);
+}
+
+.portion-calculator-summary {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 1.1rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    list-style: none;
+}
+
+    .portion-calculator-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .portion-calculator-summary::before {
+        content: "\25B8";
+        margin-right: 0.4rem;
+        font-size: 0.75rem;
+    }
+
+.portion-calculator-details[open] .portion-calculator-summary::before {
+    content: "\25BE";
+}
+
+.portion-calculator {
+    padding: 0 1.1rem 0.9rem;
 }
 
     .portion-calculator .field-hint {
