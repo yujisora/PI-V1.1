@@ -68,22 +68,22 @@
     </div>
 
     <div class="dashboard-stats-grid">
-        <div class="card dashboard-stat-card">
+        <a href="@Url.Action("Recent", "Home", new { all = true })" class="card dashboard-stat-card dashboard-stat-card-link">
             <p class="dashboard-stat-value">@Model.TotalProducts</p>
             <p class="dashboard-stat-label">Total Products</p>
-        </div>
-        <div class="card dashboard-stat-card">
+        </a>
+        <a href="@Url.Action("Activity", "Home", new { status = "pending" })" class="card dashboard-stat-card dashboard-stat-card-link">
             <p class="dashboard-stat-value" style="color: #d97706;">@Model.PendingEditsCount</p>
             <p class="dashboard-stat-label">Pending Edits</p>
-        </div>
-        <div class="card dashboard-stat-card">
+        </a>
+        <a href="@Url.Action("Activity", "Home", new { status = "approved" })" class="card dashboard-stat-card dashboard-stat-card-link">
             <p class="dashboard-stat-value" style="color: var(--primary-solid);">@Model.ApprovedEditsCount</p>
             <p class="dashboard-stat-label">Approved Edits</p>
-        </div>
-        <div class="card dashboard-stat-card">
+        </a>
+        <a href="@Url.Action("Activity", "Home", new { status = "denied" })" class="card dashboard-stat-card dashboard-stat-card-link">
             <p class="dashboard-stat-value" style="color: var(--destructive);">@Model.DeniedEditsCount</p>
             <p class="dashboard-stat-label">Denied Edits</p>
-        </div>
+        </a>
     </div>
 
     @if (Model.PendingEditsCount > 0)

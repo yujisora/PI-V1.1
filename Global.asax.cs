@@ -23,6 +23,8 @@ namespace PIV11
         }
         protected void Application_Error()
         {
+            // Temporarily disabled to see the real error - restore this after debugging
+            /*
             var exception = Server.GetLastError();
             if (exception == null) return;
 
@@ -38,6 +40,7 @@ namespace PIV11
             routeData.Values["action"] = "General";
             IController controller = new PIV11.Controllers.ErrorController();
             controller.Execute(new RequestContext(new HttpContextWrapper(Context), routeData));
+            */
         }
     }
 }

@@ -327,6 +327,54 @@ namespace PIV11.Controllers
             }
         }
 
+        // GET: /Home/Activity?status=pending|approved|denied (or omitted for all)
+        // Admin only. The dashboard's stat cards link here - unlike the
+        // Dashboard's "Recent Activity" section (capped at 10, mixed
+        // statuses), this shows every matching EditHistory record with no
+        // cap, filtered to one status at a time.
+        public ActionResult Activity(string status)
+        {
+            if (!SessionHelper.IsAdmin)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            string normalizedStatus = (status ?? "").Trim().ToLower();
+            bool isValidStatus = normalizedStatus == "pending" || normalizedStatus == "approved" || normalizedStatus == "denied";
+
+            using (var db = new NorteMartContext())
+            {
+                var query = db.EditHistory.AsQueryable();
+                if (isValidStatus)
+                {
+                    query = query.Where(e => e.Status == normalizedStatus);
+                }
+
+                var edits = query.OrderByDescending(e => e.DateEdited).ToList();
+
+                var upcs = edits.Select(e => e.UPC).Distinct().ToList();
+                var namesByUpc = db.Products
+                    .Where(p => upcs.Contains(p.UPC))
+                    .ToDictionary(p => p.UPC, p => p.ProductName);
+
+                var items = edits.Select(e => new AdminActivityItem
+                {
+                    UPC = e.UPC,
+                    ProductName = namesByUpc.ContainsKey(e.UPC) ? namesByUpc[e.UPC] : "(deleted product)",
+                    FieldChanged = e.FieldChanged,
+                    NewValue = e.NewValue,
+                    EditedByUser = e.EditedByUser,
+                    DateEdited = e.DateEdited,
+                    Status = e.Status
+                }).ToList();
+
+                ViewBag.ActiveScreen = "Home";
+                ViewBag.StatusFilter = isValidStatus ? normalizedStatus : "all";
+                ViewBag.Title = "Edit Activity";
+                return View(items);
+            }
+        }
+
         /* ---------------- Helpers ---------------- */
 
         // Ports the mockup's validateUPC() logic exactly: accepts a

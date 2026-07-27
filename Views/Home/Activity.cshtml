@@ -1,0 +1,78 @@
+﻿@model System.Collections.Generic.List<PIV11.Models.ViewModels.AdminActivityItem>
+@{
+    ViewBag.ActiveScreen = "Home";
+    ViewBag.Title = "Edit Activity";
+    string statusFilter = ViewBag.StatusFilter as string ?? "all";
+    string heading = statusFilter == "pending" ? "Pending Edits"
+                    : statusFilter == "approved" ? "Approved Edits"
+                    : statusFilter == "denied" ? "Denied Edits"
+                    : "All Edits";
+}
+
+<div class="page-container">
+    <div class="page-header-row">
+        <div>
+            <h2>@heading</h2>
+            <p class="text-muted">@Model.Count matching edit@(Model.Count != 1 ? "s" : "").</p>
+        </div>
+        <a href="@Url.Action("Index", "Home")" class="btn-secondary">&larr; Back to Dashboard</a>
+    </div>
+
+    <div class="filter-pill-row">
+        <a href="@Url.Action("Activity", "Home")" class="filter-pill @(statusFilter == "all" ? "filter-pill-active" : "")">All</a>
+        <a href="@Url.Action("Activity", "Home", new { status = "pending" })" class="filter-pill @(statusFilter == "pending" ? "filter-pill-active" : "")">Pending</a>
+        <a href="@Url.Action("Activity", "Home", new { status = "approved" })" class="filter-pill @(statusFilter == "approved" ? "filter-pill-active" : "")">Approved</a>
+        <a href="@Url.Action("Activity", "Home", new { status = "denied" })" class="filter-pill @(statusFilter == "denied" ? "filter-pill-active" : "")">Denied</a>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <p class="text-muted empty-state">No matching edits found.</p>
+    }
+    else
+    {
+        <div class="history-table-wrap">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Product</th>
+                        <th scope="col">User</th>
+                        <th scope="col">Field</th>
+                        <th scope="col">New Value</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><a href="@Url.Action("History", "Product", new { upc = item.UPC })" class="link-inline">@item.ProductName</a></td>
+                            <td>@item.EditedByUser</td>
+                            <td>@item.FieldChanged</td>
+                            <td class="history-value-cell">
+                                <span class="truncate-value" tabindex="0" role="button"
+                                      aria-label="Click to see the full value" title="@item.NewValue">@item.NewValue</span>
+                                </td>
+                                <td>@item.DateEdited.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    @if (item.Status == "approved")
+                                    {
+                                        <span class="status-badge status-approved">&#10003; Approved</span>
+                                    }
+                                    else if (item.Status == "denied")
+                                    {
+                                        <span class="status-badge status-denied">&#10007; Denied</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-pending">&#128337; Pending</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

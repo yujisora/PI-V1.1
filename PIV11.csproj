@@ -209,6 +209,11 @@
     <Content Include="Views\Product\Edit.cshtml" />
     <Content Include="Views\Product\History.cshtml" />
     <Content Include="Views\Product\Info.cshtml" />
+    <Content Include="Views\Shared\_AccessibilityPanel.cshtml" />
+    <Content Include="Views\Home\AddProduct.cshtml" />
+    <Content Include="Views\Home\Dashboard.cshtml" />
+    <Content Include="Views\Home\Recent.cshtml" />
+    <Content Include="Views\Home\Activity.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

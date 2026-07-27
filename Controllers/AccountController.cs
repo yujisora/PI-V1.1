@@ -48,22 +48,6 @@ namespace PIV11.Controllers
             {
                 var account = db.Users.FirstOrDefault(u => u.UserID == normalizedUsername);
 
-#if DEBUG
-                // =========================================================
-                // TEMPORARY - TESTING ONLY. Skips the password check
-                // entirely (any password works) as long as the username is
-                // a real account. Wrapped in #if DEBUG so a Release build
-                // never includes this block at all, even if you forget to
-                // delete it - but delete this whole #if/#endif section
-                // before you consider the app finished.
-                // =========================================================
-                if (account != null)
-                {
-                    SessionHelper.LogIn(account.UserID, account.Role, account.DisplayName, account.MemberID);
-                    return RedirectToAction("Index", "Home");
-                }
-#endif
-
                 // Deliberately the same generic message whether the
                 // username doesn't exist or the password is wrong - now
                 // that accounts are self-registerable, revealing which

@@ -1369,6 +1369,51 @@ input, select, textarea {
     text-align: center;
 }
 
+.dashboard-stat-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.1s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+    .dashboard-stat-card-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+.filter-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.filter-pill {
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+    .filter-pill:hover {
+        background: var(--muted);
+    }
+
+.filter-pill-active {
+    background: var(--primary-solid);
+    border-color: var(--primary-solid);
+    color: #fff;
+}
+
+    .filter-pill-active:hover {
+        background: var(--primary-solid);
+    }
+
 .dashboard-stat-value {
     font-size: 2.25rem;
     font-weight: 700;
@@ -1710,6 +1755,17 @@ input, select, textarea {
     font-size: 0.8rem;
     opacity: 0.8;
 }
+
+.portion-calculator {
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--muted);
+}
+
+    .portion-calculator .field-hint {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+    }
 
 .nutrition-table {
     width: 100%;
@@ -2326,15 +2382,26 @@ input, select, textarea {
    width breakpoint doesn't catch).
    ------------------------------------------------------------------------- */
 
-/* Narrow portrait phones: stack the search box instead of letting the
-   button awkwardly wrap onto its own line. */
+/* Narrow portrait phones: input gets its own row (wraps first, since
+   it's forced to 100% width), then the scan and search buttons share
+   the next row together - keeps them "alongside" each other instead
+   of each stacking onto its own line. */
 @media (max-width: 30rem) {
     .search-form {
-        flex-direction: column;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .scan-btn {
+        flex: 0 0 auto;
     }
 
     .search-btn {
-        width: 100%;
+        flex: 1;
     }
 
     .login-card {

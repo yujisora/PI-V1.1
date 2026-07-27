@@ -18,8 +18,7 @@
 
         <div class="edit-layout">
 
-            <!-- Left column: Image -->
-            <!-- Columna izquierda: Imagen -->
+            @* ---- Column 1: image ---- *@
             <section>
                 <div class="product-image-frame">
                     @if (!string.IsNullOrEmpty(Model.ImageUrl))
@@ -42,14 +41,13 @@
                 </div>
             </section>
 
-            <!-- Columna central: información general (datos, alérgenos, ingredientes) -->
-            <!-- Centre column: general info (main info, allergens, ingredients) -->
+            @* ---- Column 2: core fields + allergens + ingredients ---- *@
             <section class="card">
                 <div class="field-row" style="grid-template-columns: 1fr 11rem;">
                     <div>
                         <label class="field-label" for="UpcDisplay" style="margin-top: 0;">EAN/UPC</label>
                         <input class="field-input" type="text" id="UpcDisplay" value="@Model.UPC" name="UPC" readonly
-                               title="The barcode can't be changed after a product is created; delete the product and create a new one" aria-describedby="upcReadonlyHint" />
+                               title="The barcode can't be changed after a product is created" aria-describedby="upcReadonlyHint" />
                         <p id="upcReadonlyHint" class="field-hint">Can't be changed after a product is created.</p>
                     </div>
                     <div>
@@ -125,14 +123,24 @@
                 <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">Save Changes</button>
             </section>
 
-            <!-- Right column: nutrition facts + warning seals -->
-            <!-- Columna Izquierda: Información nutrimental y -->
+            @* ---- Column 3: editable nutrition facts + warning seals ---- *@
             <aside>
                 <div class="nutrition-card">
                     <div class="nutrition-header">
                         <p class="nutrition-header-title">Nutrition Facts</p>
                         <p class="nutrition-header-sub">Per 100 g/ml, as shown on the label</p>
                     </div>
+
+                    <div class="portion-calculator">
+                        <label class="field-label" for="portionSizeInput" style="margin-top: 0;">Have values for one portion instead?</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" min="1" id="portionSizeInput" class="field-input" placeholder="e.g. 30" style="flex: 1;" />
+                            <span class="text-muted" style="font-size: 0.85rem;">g/ml per portion</span>
+                        </div>
+                        <button type="button" id="convertPortionBtn" class="btn-secondary" style="margin-top: 0.5rem; width: 100%;">Convert values below to per 100 g/ml</button>
+                        <p class="field-hint">Enter the nutrition values below exactly as printed for one portion, set the portion size here, then convert &ndash; the fields below will update to the per-100 figures the app actually stores.</p>
+                    </div>
+
                     <table class="nutrition-table" aria-label="Edit nutrition facts">
                         <tbody>
                             <tr>
@@ -253,3 +261,28 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('convertPortionBtn').addEventListener('click', function () {
+            var portionSize = parseFloat(document.getElementById('portionSizeInput').value);
+            if (!portionSize || portionSize <= 0) {
+                alert('Enter a valid portion size first (a number greater than 0).');
+                return;
+            }
+
+            var ratio = 100 / portionSize;
+            var fieldIds = ['Calories', 'Fats', 'SaturatedFats', 'TransFats', 'Carbs', 'Sugars', 'AddedSugars', 'Fiber', 'Proteins', 'Sodium'];
+
+            fieldIds.forEach(function (id) {
+                var input = document.getElementById(id);
+                var current = parseFloat(input.value);
+                if (!isNaN(current)) {
+                    input.value = Math.round(current * ratio);
+                }
+            });
+
+            alert('Converted - the fields above now show per-100 g/ml values. Review them, then save as usual.');
+        });
+    </script>
+}
