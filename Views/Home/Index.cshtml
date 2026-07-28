@@ -99,10 +99,16 @@
     // is just an ordinary character inside a quoted C# string literal,
     // which sidesteps an edge case in classic MVC 5's Razor tokenizer
     // where @@ escaping misbehaves when a digit immediately follows.
-    string zxingCdnUrl = "https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js";
+    //
+    // Using Quagga2 (the actively-maintained @ericblade/quagga2 fork)
+    // instead of ZXing-js - it decodes real-world retail barcode photos
+    // more reliably in practice, and its inputStream.size option
+    // downscales large phone-camera photos internally before decoding,
+    // which a full-resolution image can otherwise choke on.
+    string quaggaCdnUrl = "https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js";
 }
 @section Scripts {
-    <script src="@zxingCdnUrl"></script>
+    <script src="@quaggaCdnUrl"></script>
     <script>
         (function () {
             var scanFileInput = document.getElementById('scanFileInput');
@@ -125,7 +131,7 @@
                 var file = this.files && this.files[0];
                 if (!file) return;
 
-                if (typeof ZXing === 'undefined') {
+                if (typeof Quagga === 'undefined') {
                     alert("Couldn't load the scanner. Check your connection and try again.");
                     scanFileInput.value = '';
                     return;
@@ -133,21 +139,28 @@
 
                 statusEl.hidden = false;
                 var imageUrl = URL.createObjectURL(file);
-                var codeReader = new ZXing.BrowserMultiFormatReader();
 
-                codeReader.decodeFromImageUrl(imageUrl)
-                    .then(function (result) {
-                        queryInput.value = result.getText();
+                function cleanUp() {
+                    URL.revokeObjectURL(imageUrl);
+                    scanFileInput.value = '';
+                    statusEl.hidden = true;
+                }
+
+                Quagga.decodeSingle({
+                    decoder: { readers: ['ean_reader', 'upc_reader', 'upc_e_reader'] },
+                    locate: true,
+                    src: imageUrl,
+                    inputStream: { size: 1600 }
+                }, function (result) {
+                    if (result && result.codeResult && result.codeResult.code) {
+                        cleanUp();
+                        queryInput.value = result.codeResult.code;
                         searchForm.submit();
-                    })
-                    .catch(function () {
-                        statusEl.hidden = true;
-                        alert("Couldn't find a barcode in that photo. Try again with the barcode centered, well-lit, and in focus.");
-                    })
-                    .finally(function () {
-                        URL.revokeObjectURL(imageUrl);
-                        scanFileInput.value = '';
-                    });
+                    } else {
+                        cleanUp();
+                        alert("Couldn't find a barcode in that photo. Try again with the barcode centered, well-lit, filling more of the frame, and in focus.");
+                    }
+                });
             });
         })();
     </script>
