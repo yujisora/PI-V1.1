@@ -9,7 +9,10 @@
        improve reading fluency, while still looking clean as a normal UI
        font. See the accessibility panel for two further options12
        (Atkinson Hyperlegible, OpenDyslexic) for readers who need them. */
+
     --font-family-base: 'Lexend', 'Segoe UI', Arial, sans-serif;
+
+
     --background: #ffffff;
     --foreground: #000000;
     --card: #ffffff;
@@ -39,6 +42,8 @@
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
     --radius-full: 9999px;
+
+
     /* Horizontal edge padding for page containers/hero/header. Deliberately
        a fixed px value, NOT rem - if this scaled with --font-size like
        everything else, cranking up text size would make the edge gutters
@@ -47,18 +52,25 @@
        max-width container doesn't need much outer breathing room once the
        screen is already wide. */
     --edge-padding: 20px;
+
+
     /* Role-tinted header backgrounds (from the mockup's Header component).
        Admin uses a noticeably more saturated violet than a plain pastel -
        the original very pale lavender (#ede9fe/#ddd6fe) was too subtle to
        read as "purple" next to the user role's clearly-green tint. */
     --header-guest-bg: #f8fafc;
     --header-guest-border: #e2e8f0;
+
     --header-user-bg: #d1fae5;
     --header-user-border: #6ee7b7;
+
     --header-admin-bg: #ddd6fe;
     --header-admin-border: #c4b5fd;
+
     --header-shopper-bg: #bfdbfe;
     --header-shopper-border: #60a5fa;
+
+
     /* Allergen warning box colors */
     --warning-bg: #fef9c3;
     --warning-border: #ef4444;
@@ -85,14 +97,19 @@
     --destructive-foreground: #2b0a0a;
     --border: #2a2e2a;
     --input-background: #1a1d1b;
+
     --header-guest-bg: #1a1d1b;
     --header-guest-border: #2a2e2a;
+
     --header-user-bg: #052e22;
     --header-user-border: #064e3b;
+
     --header-admin-bg: #2e1065;
     --header-admin-border: #4c1d95;
+
     --header-shopper-bg: #0c1e3d;
     --header-shopper-border: #1e3a8a;
+
     --warning-bg: #453411;
     --warning-border: #f87171;
     --amber-bg: #2c1f05;
