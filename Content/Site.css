@@ -1,22 +1,13 @@
-/* =========================================================================
-   site.css
-   FoodScan visual theme, translated from the Figma mockup's CSS variables.
-   Organized in sections - search for the "=====" headers to jump around.
-   ========================================================================= */
-
-/* -------------------------------------------------------------------------
-   1) COLOR VARIABLES (light mode defaults, .dark overrides below)
-   Taken directly from the mockup's theme file.
-   ------------------------------------------------------------------------- */
+/* 1) Light mode (default); dark mode is separate */
+/*    Modo claro (default); modo oscuro es separado */
 :root {
-    --font-size: 16px;
-    /* Accessibility panel controls - see section 10 for how these are toggled */
+    --font-size: 16px; /* cambia con el panel de accesibilidad; en  */
     --letter-spacing: normal;
     --line-height-base: 1.5;
     /* Lexend is the default site-wide font (not just an accessibility
        option) - it's a Google Font designed to reduce visual stress and
        improve reading fluency, while still looking clean as a normal UI
-       font. See the accessibility panel for two further options
+       font. See the accessibility panel for two further options12
        (Atkinson Hyperlegible, OpenDyslexic) for readers who need them. */
     --font-family-base: 'Lexend', 'Segoe UI', Arial, sans-serif;
     --background: #ffffff;
