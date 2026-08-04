@@ -8,6 +8,11 @@
     bool canEditProducts = SessionHelper.CanEditProducts;
 }
 
+@*
+    Main view for a product: shows info (available for all users)
+        Vista principal de un producto: muestra información (disponible para todos los usuarios)
+*@
+
 <div class="page-container">
 
     @if (TempData["EditMessage"] != null)
@@ -15,6 +20,11 @@
         <p class="form-error" role="status" style="color: var(--primary-solid);">@TempData["EditMessage"]</p>
     }
 
+
+    @*
+        Buttons for editing, history, and deleting (only for users with permission [employee & admin])
+            Botones para editar, historial y eliminar (solo para usuarios con permisos [empleados & admin])
+    *@
     @if (canEditProducts)
     {
         <div class="action-bar">
@@ -41,151 +51,154 @@
         </div>
     }
 
-    <div class="product-layout">
+<div class="product-layout">
 
-        @* ---- Column 1: image + My People panel ---- *@
-        <section>
-            <div class="product-image-frame">
-                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    @* Column 1: Image + My People panel *@
+        @* Columna 1: Imagen y panel My People *@
+    <section>
+        <div class="product-image-frame">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="@Model.ProductName" />
+            }
+            else
+            {
+                <span class="product-image-placeholder" aria-hidden="true">&#128230;</span>
+            }
+        </div>
+
+        @if (SessionHelper.CanAccessMyPeople)
+        {
+            <div class="people-panel">
+                <p class="people-panel-title">My People</p>
+                @if (Model.MyPeopleGroups.Count == 0)
                 {
-                    <img src="@Model.ImageUrl" alt="@Model.ProductName" />
+                    <p class="text-muted" style="font-size: 0.9rem;">
+                        You haven't added anyone yet.
+                        <a href="@Url.Action("Index", "People")" class="link-inline">Add people &rarr;</a>
+                    </p>
                 }
                 else
                 {
-                    <span class="product-image-placeholder" aria-hidden="true">&#128230;</span>
-                }
-            </div>
-
-            @if (SessionHelper.CanAccessMyPeople)
-            {
-                <div class="people-panel">
-                    <p class="people-panel-title">My People</p>
-                    @if (Model.MyPeopleGroups.Count == 0)
+                    foreach (var group in Model.MyPeopleGroups)
                     {
-                        <p class="text-muted" style="font-size: 0.9rem;">
-                            You haven't added anyone yet.
-                            <a href="@Url.Action("Index", "People")" class="link-inline">Add people &rarr;</a>
-                        </p>
-                    }
-                    else
-                    {
-                        foreach (var group in Model.MyPeopleGroups)
-                        {
-                            <div class="people-group">
-                                <div class="people-group-header">
-                                    <span>@group.GroupName</span>
-                                    @if (group.AffectedCount > 0)
-                                    {
-                                        <span class="people-affected-badge">@group.AffectedCount affected</span>
-                                    }
-                                </div>
-                                @foreach (var member in group.Members)
+                        <div class="people-group">
+                            <div class="people-group-header">
+                                <span>@group.GroupName</span>
+                                @if (group.AffectedCount > 0)
                                 {
-                                    <div class="people-member-row people-status-@member.Status">
-                                        <span class="people-status-icon" aria-hidden="true">
-                                            @(member.Status == "safe" ? "\u2714" : "\u26A0")
-                                        </span>
-                                        <span>@member.Name</span>
-                                        @if (member.Status == "danger")
-                                        {
-                                            <span class="people-member-note">Contains allergen</span>
-                                        }
-                                        else if (member.Status == "caution")
-                                        {
-                                            <span class="people-member-note">May contain</span>
-                                        }
-                                    </div>
+                                    <span class="people-affected-badge">@group.AffectedCount affected</span>
                                 }
                             </div>
-                        }
-                    }
-                </div>
-            }
-        </section>
-
-        @* ---- Column 2: product details ---- *@
-        <section>
-            <p class="product-upc">@Model.UPC</p>
-            <h1 class="product-name">@Model.ProductName</h1>
-            @if (!string.IsNullOrEmpty(Model.Brand))
-            {
-                <p class="product-brand">@Model.Brand</p>
-            }
-            <p class="product-netcontent">Net content: @Model.NetVolume @Model.UnitMeasurement</p>
-
-            @if (Model.AllergensContains.Count > 0 || Model.AllergensMayContain.Count > 0)
-            {
-                <div class="allergen-box">
-                    <h3>Allergens</h3>
-                    @if (Model.AllergensContains.Count > 0)
-                    {
-                        <p>Contains: @string.Join(", ", Model.AllergensContains).</p>
-                    }
-                    @if (Model.AllergensMayContain.Count > 0)
-                    {
-                        <p><strong>May Contain:</strong> @string.Join(", ", Model.AllergensMayContain).</p>
-                    }
-                </div>
-            }
-
-            <div class="card ingredients-card">
-                <h3>Ingredients</h3>
-                <p>@(string.IsNullOrEmpty(Model.Ingredients) ? "No ingredient information available." : Model.Ingredients)</p>
-            </div>
-        </section>
-
-        @* ---- Column 3: nutrition facts + seals ---- *@
-        <aside>
-            <div class="nutrition-card">
-                <div class="nutrition-header">
-                    <p class="nutrition-header-title">Nutrition Facts</p>
-                    <p class="nutrition-header-sub">Per 100 g</p>
-                </div>
-                <table class="nutrition-table" aria-label="Nutrition facts">
-                    <tbody>
-                        @foreach (var fact in Model.NutritionFacts)
-                        {
-                            <tr class="@(fact.Indented ? "nutrition-row-indented" : "")">
-                                <td>@fact.Label</td>
-                                <td class="nutrition-value">
-                                    @(fact.Value.HasValue ? fact.Value.Value.ToString() : "0")
-                                    <span class="nutrition-unit">@fact.Unit</span>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            @if (Model.ActiveSeals.Count > 0)
-            {
-                var octagons = Model.ActiveSeals.Where(s => s.IsOctagon).ToList();
-                var rects = Model.ActiveSeals.Where(s => !s.IsOctagon).ToList();
-                <div class="seals-panel">
-                    <div class="seals-wrap">
-                        @foreach (var seal in octagons)
-                        {
-                            <div class="seal-octagon">@seal.Label</div>
-                        }
-                    </div>
-                    @if (rects.Count > 0)
-                    {
-                        <div class="seals-rects-row">
-                            @foreach (var seal in rects)
+                            @foreach (var member in group.Members)
                             {
-                                <div class="seal-rect">
-                                    <p class="seal-rect-label">@seal.Label</p>
-                                    @if (!string.IsNullOrEmpty(seal.SubLabel))
+                                <div class="people-member-row people-status-@member.Status">
+                                    <span class="people-status-icon" aria-hidden="true">
+                                        @(member.Status == "safe" ? "\u2714" : "\u26A0")
+                                    </span>
+                                    <span>@member.Name</span>
+                                    @if (member.Status == "danger")
                                     {
-                                        <p class="seal-rect-sub">@seal.SubLabel</p>
+                                        <span class="people-member-note">Contains allergen</span>
+                                    }
+                                    else if (member.Status == "caution")
+                                    {
+                                        <span class="people-member-note">May contain</span>
                                     }
                                 </div>
                             }
                         </div>
                     }
-                </div>
-            }
-        </aside>
+                }
+            </div>
+        }
+    </section>
 
-    </div>
+    @* Column 2: Product details *@
+        @* Columna 2: Detalles del producto *@
+    <section>
+        <p class="product-upc">@Model.UPC</p>
+        <h1 class="product-name">@Model.ProductName</h1>
+        @if (!string.IsNullOrEmpty(Model.Brand))
+        {
+            <p class="product-brand">@Model.Brand</p>
+        }
+        <p class="product-netcontent">Net content: @Model.NetVolume @Model.UnitMeasurement</p>
+
+        @if (Model.AllergensContains.Count > 0 || Model.AllergensMayContain.Count > 0)
+        {
+            <div class="allergen-box">
+                <h3>Allergens</h3>
+                @if (Model.AllergensContains.Count > 0)
+                {
+                    <p>Contains: @string.Join(", ", Model.AllergensContains).</p>
+                }
+                @if (Model.AllergensMayContain.Count > 0)
+                {
+                    <p><strong>May Contain:</strong> @string.Join(", ", Model.AllergensMayContain).</p>
+                }
+            </div>
+        }
+
+        <div class="card ingredients-card">
+            <h3>Ingredients</h3>
+            <p>@(string.IsNullOrEmpty(Model.Ingredients) ? "No ingredient information available." : Model.Ingredients)</p>
+        </div>
+    </section>
+
+    @* Column 3: Nutrition facts + seals *@
+        @* Columna 3: Información nutricional + sellos *@
+    <aside>
+        <div class="nutrition-card">
+            <div class="nutrition-header">
+                <p class="nutrition-header-title">Nutrition Facts</p>
+                <p class="nutrition-header-sub">Per 100 g</p>
+            </div>
+            <table class="nutrition-table" aria-label="Nutrition facts">
+                <tbody>
+                    @foreach (var fact in Model.NutritionFacts)
+                    {
+                        <tr class="@(fact.Indented ? "nutrition-row-indented" : "")">
+                            <td>@fact.Label</td>
+                            <td class="nutrition-value">
+                                @(fact.Value.HasValue ? fact.Value.Value.ToString() : "0")
+                                <span class="nutrition-unit">@fact.Unit</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.ActiveSeals.Count > 0)
+        {
+            var octagons = Model.ActiveSeals.Where(s => s.IsOctagon).ToList();
+            var rects = Model.ActiveSeals.Where(s => !s.IsOctagon).ToList();
+            <div class="seals-panel">
+                <div class="seals-wrap">
+                    @foreach (var seal in octagons)
+                    {
+                        <div class="seal-octagon">@seal.Label</div>
+                    }
+                </div>
+                @if (rects.Count > 0)
+                {
+                    <div class="seals-rects-row">
+                        @foreach (var seal in rects)
+                        {
+                            <div class="seal-rect">
+                                <p class="seal-rect-label">@seal.Label</p>
+                                @if (!string.IsNullOrEmpty(seal.SubLabel))
+                                {
+                                    <p class="seal-rect-sub">@seal.SubLabel</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </aside>
+
+</div>
 </div>

@@ -1,12 +1,17 @@
 @using PIV11.Infrastructure
 @{
-    // ---------------------------------------------------------------
+
     // Flags each view can set (via ViewBag) before rendering this layout:
     //   ViewBag.ActiveScreen : "Home" | "Product Info" | "Edit" | "My People" | "Recent"
     //   ViewBag.ShowBack     : true to show the back arrow in the header
     //   ViewBag.ShowSave     : true to show the save icon in the header
     //   ViewBag.SaveFormId   : the id of the <form> the save icon should submit
-    // ---------------------------------------------------------------
+        // Banderas que cada vista puede establecer (a través de ViewBag) antes de renderizar este diseño:
+        //  ViewBag.ActiveScreen : "Home" | "Product Info" | "Edit" | "My People" | "Recent"
+        // ViewBag.ShowBack     : true para mostrar la flecha de retroceso en el encabezado
+        // ViewBag.ShowSave     : true para mostrar el icono de guardar en el encabezado
+        // ViewBag.SaveFormId   : el id del <form> que el icono de guardar debe enviar
+
     string activeScreen = ViewBag.ActiveScreen as string ?? "";
     bool showBack = ViewBag.ShowBack ?? false;
     bool showSave = ViewBag.ShowSave ?? false;
@@ -18,14 +23,20 @@
     bool isShopper = SessionHelper.IsShopper;
     bool canAccessMyPeople = SessionHelper.CanAccessMyPeople;
 
-    // "Product Info" nav link / back arrow both need to know which
-    // product was last viewed - tracked centrally in SessionHelper.
+    // "Product Info" nav link / back arrow both need to know which product was last viewed - tracked centrally in SessionHelper.
+    // Navigating to a product page sets this value; navigating away (to Home, My People, etc.) does not clear it, so the back arrow can still return to the last product viewed.
+        // Nav link "Product info" y el botón de retroceso necesitan saber qué producto se vio por última vez; se rastrea de manera central en SessionHelper.
+        // Navegar a una página de producto establece este valor; navegar a otra página (Inicio, My People, etc.) no lo borra, por lo que el botón de retroceso aún puede regresar al último producto visto.
     decimal? currentUpcObj = SessionHelper.CurrentProductUPC;
+
+    // UPC is a decimal, but we don't want to show the decimal point in the URL. So we convert it to a string without any decimal places.
+        // UPC es un decimal, pero no queremos mostrar el punto decimal en la URL. Por lo tanto, lo convertimos a una cadena sin decimales.
     bool hasCurrentProduct = currentUpcObj.HasValue;
 
     // Header background tint: violet for admin, emerald for employee, blue for shopper, slate for guest.
-    // (CSS class stays named "header-user" - a harmless internal detail,
-    // not shown to anyone - even though the role is now called "employee".)
+    // (CSS class stays named "header-user" - a harmless internal detail, not shown to anyone - even though the role is now called "shopper"/"employee"/"admin".)
+
+
     string headerClass = isAdmin ? "site-header header-admin"
                         : isEmployee ? "site-header header-user"
                         : isShopper ? "site-header header-shopper"
@@ -87,6 +98,14 @@
         })();
     </script>
 </head>
+
+@*
+    Header logic: determine which nav pill is active, whether to show the back arrow, and where it should go.
+    The back arrow usually goes to Home, but Edit and Edit History explicitly opt into going back to Product Info instead.
+    The save icon is only shown on screens that have a form to submit (Edit, My People form, etc.).
+    The save icon is a <button type="submit"> that submits the form with the id specified in ViewBag.SaveFormId.
+*@
+
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
 

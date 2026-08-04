@@ -1,10 +1,16 @@
 ﻿@{
-        // Standalone page, same pattern as Login.cshtml - no _Layout, since this is reachable by anyone who isn't logged in yet.
-        // Pagina no usa _Layout; igual que Login.cshtml.
-
     Layout = null;
     ViewBag.Title = "Create Account - FoodScan";
 }
+
+@*
+    Standalone page, same pattern as Login.cshtml.
+    Allows users to create shopper accounts; employee accounts are created by admin users in their own view (CreateEmployee.cshtml).
+
+    Pagina no usa _Layout; igual que Login.cshtml.
+    Permite a usuarios crear cuentas de comprador; cuentas de empleado son creadas por admin en su propia vista (CreateEmployee.cshtml).
+*@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -4,6 +4,11 @@
     ViewBag.Title = "Home";
 }
 
+@*
+    Main front page; shown to all users (except for admin, see Dashboard.cshtml)
+    Página principal, mostrada a todos los usuarios (excepto admin, ver Dashboard.cshtml)
+*@
+
 <section class="hero">
     <p class="hero-eyebrow">Barcode-powered food intelligence</p>
     <h1 class="hero-title">Know what's in<br /><span class="text-primary">your food.</span></h1>
@@ -95,16 +100,8 @@
 </section>
 
 @{
-    // Defined as a plain C# string, not typed directly into markup - @
-    // is just an ordinary character inside a quoted C# string literal,
-    // which sidesteps an edge case in classic MVC 5's Razor tokenizer
-    // where @@ escaping misbehaves when a digit immediately follows.
-    //
-    // Using Quagga2 (the actively-maintained @ericblade/quagga2 fork)
-    // instead of ZXing-js - it decodes real-world retail barcode photos
-    // more reliably in practice, and its inputStream.size option
-    // downscales large phone-camera photos internally before decoding,
-    // which a full-resolution image can otherwise choke on.
+    // URL as string due to @ Url.Content() not working with the Quagga2 CDN URL (it has a @ in it)
+    // URL es un string ya que @ Url.Content() no funciona con la URL del CDN de Quagga2 (tiene un @ en ella)
     string quaggaCdnUrl = "https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js";
 }
 @section Scripts {
@@ -118,15 +115,8 @@
 
             if (!scanFileInput) return;
 
-            // Deliberately NOT using getUserMedia()/live video here - that
-            // API requires a "secure context" (HTTPS or localhost), which
-            // makes it unusable when demoing on phones over a plain local
-            // network (http://192.168.x.x). A file input with
-            // capture="environment" instead opens the phone's native
-            // camera app directly to take one photo - that's a much older,
-            // always-available browser feature with no HTTPS requirement
-            // at all. The trade-off is one extra tap (take photo, confirm)
-            // instead of continuous live scanning.
+            // Using an image over live video due to HTTPS being required for the latter.
+            // Usando una imagen en lugar de video en vivo; se requiere HTTPS para el segundo.
             scanFileInput.addEventListener('change', function () {
                 var file = this.files && this.files[0];
                 if (!file) return;
@@ -144,7 +134,7 @@
                     URL.revokeObjectURL(imageUrl);
                     scanFileInput.value = '';
                     statusEl.hidden = true;
-                }   
+                }
 
                 Quagga.decodeSingle({
                     decoder: { readers: ['ean_reader', 'upc_reader', 'upc_e_reader'] },

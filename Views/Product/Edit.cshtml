@@ -9,6 +9,11 @@
     ViewBag.Title = "Edit " + Model.ProductName;
 }
 
+@*
+    View used to render edit page of a product (only available to employee and admin)
+        Vista usada para renderizar la página de edición de un producto (solo disponible para empleado y admin)
+*@
+
 <div class="page-container">
     @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
 
@@ -18,7 +23,8 @@
 
         <div class="edit-layout">
 
-            @* ---- Column 1: image ---- *@
+            @* Column 1: image *@
+                @* Columna 1: Imagen *@
             <section>
                 <div class="product-image-frame">
                     @if (!string.IsNullOrEmpty(Model.ImageUrl))
@@ -41,7 +47,8 @@
                 </div>
             </section>
 
-            @* ---- Column 2: core fields + allergens + ingredients ---- *@
+            @* Column 2: core fields + allergens + ingredients *@
+                @* Columna 2: campos básicos + alérgenos + ingredientes *@
             <section class="card">
                 <div class="field-row" style="grid-template-columns: 1fr 11rem;">
                     <div>
@@ -123,7 +130,8 @@
                 <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">Save Changes</button>
             </section>
 
-            @* ---- Column 3: editable nutrition facts + warning seals ---- *@
+            @* Column 3: editable nutrition facts + warning seals *@
+                @* Columna 3:  información nutrimental editable + sellos de advertencia *@
             <aside>
                 <div class="nutrition-card">
                     <div class="nutrition-header">

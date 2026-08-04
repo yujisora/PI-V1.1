@@ -2,6 +2,12 @@
     Layout = null;
     ViewBag.Title = "Something Went Wrong - FoodScan";
 }
+
+@*
+    Used for any error (HTTP 500); catch-all page, returns to home page.
+    Usada para cualquer error (HTTP 500); página default de error, regresa a la página principal.
+*@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,6 +40,6 @@
             </p>
             <a href="@Url.Action("Index", "Home")" class="btn-primary btn-full btn-large">Back to Home</a>
         </div>
-    </main>
+    </main> 
 </body>
 </html>

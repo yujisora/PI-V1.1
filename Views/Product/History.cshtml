@@ -6,6 +6,11 @@
     ViewBag.Title = "Edit History - " + Model.ProductName;
 }
 
+@*
+    View shows the edit history for a product, including proposed changes and their statuses (available only to admin).
+        Vista muestra la historia de ediciones para un producto, incluyendo cambios propuestos y sus estados (disponible solo para admin).
+*@
+
 <div class="page-container">
     <h2>Edit History</h2>
     <p class="text-muted" style="margin-bottom: 1.5rem;">Proposed changes to &ldquo;@Model.ProductName&rdquo; (@Model.UPC).</p>

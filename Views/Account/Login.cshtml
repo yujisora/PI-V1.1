@@ -1,9 +1,11 @@
 @{
-    // The Login screen does not use _Layout.cshtml, as is formatted differently. It does use _AccesibilityPanel.cshtml
-
     Layout = null;
     ViewBag.Title = "Login - FoodScan";
 }
+@*
+    The Login screen does not use _Layout.cshtml, as is formatted differently. It does use _AccesibilityPanel.cshtml
+    Ventana de Login no usa _Layout.cshtml, ya que tiene un formato diferente. Sí usa _AccesibilityPanel.cshtml
+*@
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,9 +15,11 @@
     <link href="~/Content/site.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible&family=Lexend:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
-    @* Same anti-flash script as _Layout.cshtml, duplicated here because this
-        page intentionally doesn't use _Layout. Keep both in sync if the set
-        of accessibility settings ever changes. *@
+    @*
+        Imports styles (as _Layout.cshtml does); necessary as page does not use _Layout.cshtml.
+        Importa estilos (como lo hace _Layout.cshtml); necesario ya que la página no usa _Layout.cshtml.
+    *@
+
     <script>
         (function () {
             var html = document.documentElement;
@@ -63,8 +67,10 @@
                 <h1 class="brand-logo">Food<span class="brand-accent">Scan</span></h1>
                 <p class="login-subtitle">Sign in to your account</p>
             </div>
-            <!-- Allows screen readers to annnounce errors, if any -->
-            <!-- Permite que lectores de pantalla anuncien errores -->
+            @*
+                Allows screen readers to annnounce errors, if any
+                Permite que lectores de pantalla anuncien errores, si los hay
+            *@
             @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
 
             @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { autocomplete = "off" }))
@@ -96,7 +102,12 @@
                         aria-expanded="false" aria-controls="passwordHint">
                     Forgot password?
                 </button>
-                <p id="passwordHint" class="password-hint" hidden role="status">The password for the demo accounts (admin/user/shopper) is: <strong>1234</strong>. Self-registered accounts use whatever password you chose.</p>
+                <p id="passwordHint" class="password-hint" hidden role="status">The password for the demo accounts (admin/employee/shopper) is: <strong>1234</strong>.</p>
+                @*
+                    One note: there is no way to reset password, as that would require email.
+                    Una nota; no hay manera de restablecer la contraseña, ya que eso requeriría correo electrónico.
+                *@
+
                 <a href="@Url.Action("Index", "Home")" class="link-button-block">Back</a>
             </div>
 
@@ -107,10 +118,18 @@
             <p class="text-muted">Create a free shopper account to search products and manage My People.</p>
             <a href="@Url.Action("Register", "Account")" class="btn-secondary btn-full btn-large login-register-btn">Create a Shopper Account</a>
         </div>
+
+        @*
+            Only shopper accounts can be created here; employee accounts must be created by an admin in their view (CreateEmployee.cshtml).
+            Solo cuentas de comprador pueden crearse aquí; cuentas de empleado deben ser creadas por un admin en su vista (CreateEmployee.cshtml).
+        *@
+
     </main>
 
-    <!-- Accessibility panel - same behavior as every other page -->{
-    <!-- Panel de accesibilidad - mismo comportamiento que en las demás páginas -->
+    @*
+        Accessibility panel - same behavior as every other page
+        Panel de accesibilidad - mismo comportamiento que en las demás páginas
+    *@
     @Html.Partial("_AccessibilityPanel")
 
     <script src="~/Scripts/site.js"></script>

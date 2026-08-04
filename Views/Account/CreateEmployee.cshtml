@@ -3,10 +3,15 @@
     ViewBag.Title = "Create Employee Account";
 }
 
+@*
+    Admin-only view: creates employee accounts; user accounts are made by users themselves (via register.cshtml)
+    Vista solo para admin: crea cuentas de empleado; las cuentas de usuario son creadas por los usuarios mismos (via register.cshtml)
+*@
+
 <div class="page-container-narrow">
     <div class="card">
         <h2>Create Employee Account</h2>
-        <p class="text-muted" style="margin-bottom: 1rem;">Admin only. The new account can edit and add products, but won't have My People access.</p>
+        <p class="text-muted" style="margin-bottom: 1rem;">The new account can edit and add products, but won't have My People access.</p>
 
         @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
 
