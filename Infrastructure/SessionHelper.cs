@@ -5,24 +5,12 @@ using PIV11.Models.ViewModels;
 
 namespace PIV11.Infrastructure
 {
-    /* =====================================================================
-       SessionHelper
-       Centralizes all reads/writes to Session so no controller or view
-       has to know the exact Session key names.
-
-       Login state is now a REAL account system: Role is stored
-       separately from the username (previously the username itself WAS
-       the role, which only worked because exactly three fixed accounts
-       existed). Any number of accounts can now share a role - admin
-       creates employee accounts, anyone can self-register as shopper.
-
-       Also centralizes the "Recent Searches" list and "which product was
-       last viewed" tracking, since BOTH the Home search (HomeController)
-       and viewing a product directly (ProductController) need to record
-       the exact same way - putting that logic here means there's one
-       place to keep it consistent instead of two controllers duplicating
-       it slightly differently.
-       ===================================================================== */
+    
+    /// <summary>
+    /// Central point for every read/write to <c>Session</c> - login state (username/role/display name/member ID), Recent Searches, and which
+    /// product was last viewed. No controller or view touches <c>HttpContext.Current.Session</c> directly; everything goes through
+    /// this class so the Session key names and shapes only need to be known in one place.
+    /// </summary>
     public static class SessionHelper
     {
         private const string UsernameKey = "Username";
@@ -33,12 +21,25 @@ namespace PIV11.Infrastructure
         private const string CurrentProductKey = "CurrentProductUPC";
         private const int MaxRecentSearches = 20;
 
-        /* ---------------- Login state ---------------- */
+        // Login state
 
-        // Stores everything about the logged-in account after a
-        // successful login - all four pieces come from the Users row,
-        // read once at login time so every later page doesn't need a
-        // fresh database query just to render the header.
+        // Stores everything about the logged-in account after a successful login - all four pieces come from the Users row,
+        // read once at login time so every later page doesn't need a fresh database query just to render the header.
+
+            // Estado de inicio de sesión
+
+            // Guarda todo sobre la cuenta con sesión iniciada después de un inicio de sesión exitoso - las cuatro piezas provienen
+            // de la fila de Users, leídas una sola vez al iniciar sesión para que ninguna página posterior necesite una nueva
+            // consulta a la base de datos solo para renderizar el encabezado.
+
+        /// <summary>
+        /// Stores the full logged-in state after a successful login. Called once, at login time, with values read straight from the
+        /// <c>Users</c> row - later pages read them back from Session instead of re-querying the database on every request.
+        /// </summary>
+        /// <param name="username">The login credential (<c>Users.UserID</c>).</param>
+        /// <param name="role">One of <c>"admin"</c>, <c>"employee"</c>, <c>"shopper"</c>.</param>
+        /// <param name="displayName">The account's real name, or <c>null</c> if none was set.</param>
+        /// <param name="memberId">Optional Worker/Shopper ID, or <c>null</c>.</param>
         public static void LogIn(string username, string role, string displayName, string memberId)
         {
             HttpContext.Current.Session[UsernameKey] = username;
@@ -47,12 +48,12 @@ namespace PIV11.Infrastructure
             HttpContext.Current.Session[MemberIdKey] = memberId;
         }
 
-        // Clears the session on logout - including Recent Searches and
-        // the "current product" nav tracking, so neither carries over
-        // into the next login (whether that's a re-login as the same
-        // account or switching to a different one). During an active
-        // session these are meant to persist across pages; only logout
-        // should reset them.
+        /// <summary>
+        /// Clears the entire session on logout - login state, Recent
+        /// Searches, and the "current product" nav tracking - so nothing
+        /// carries over into the next login, whether that's the same
+        /// account signing back in or a different one.
+        /// </summary>
         public static void LogOut()
         {
             HttpContext.Current.Session.Remove(UsernameKey);
@@ -63,22 +64,25 @@ namespace PIV11.Infrastructure
             HttpContext.Current.Session.Remove(CurrentProductKey);
         }
 
-        // The login username (credential) - null if nobody is logged in.
+        // The login username (credential) - null if nobody is logged in. 
+            // El nombre de usuario de acceso (credencial) - null si nadie ha iniciado sesión.
+        /// <summary>The login username (credential), or <c>null</c> if nobody is logged in.</summary>
         public static string CurrentUsername
         {
             get { return HttpContext.Current.Session[UsernameKey] as string; }
         }
 
         // "admin" / "employee" / "shopper", or null if logged out.
+            // "admin" / "employee" / "shopper", o null si no hay sesión iniciada.
+        /// <summary>The current account's role: <c>"admin"</c>, <c>"employee"</c>, or <c>"shopper"</c>; <c>null</c> if logged out.</summary>
         public static string CurrentRole
         {
             get { return HttpContext.Current.Session[RoleKey] as string; }
         }
 
-        // The account's real name, for display (e.g. header "John | Employee").
-        // Falls back to the username itself if no display name was set
-        // (covers the original seeded accounts / any account created
-        // without one).
+        /// The account's real name for display (e.g. header "John | Employee").
+        /// Falls back to <see cref="CurrentUsername"/> if no display name was ever set.
+        /// </summary>
         public static string CurrentDisplayName
         {
             get
@@ -89,80 +93,87 @@ namespace PIV11.Infrastructure
         }
 
         // Optional Worker ID (employee) / Shopper ID (shopper) - may be null.
+            // ID de Trabajador (employee) / ID de Comprador (shopper) opcional - puede ser null.
+        /// <summary>Optional Worker ID (employee) / Shopper ID (shopper); may be <c>null</c>.</summary>
         public static string CurrentMemberId
         {
             get { return HttpContext.Current.Session[MemberIdKey] as string; }
         }
 
+        /// <summary>True if any account is currently logged in.</summary>
         public static bool IsLoggedIn
         {
             get { return CurrentUsername != null; }
         }
 
+        /// <summary>True if the current account's role is <c>"admin"</c>.</summary>
         public static bool IsAdmin
         {
             get { return CurrentRole == "admin"; }
         }
 
+        /// <summary>True if the current account's role is <c>"employee"</c>.</summary>
         public static bool IsEmployee
         {
             get { return CurrentRole == "employee"; }
         }
 
+        /// <summary>True if the current account's role is <c>"shopper"</c>.</summary>
         public static bool IsShopper
         {
             get { return CurrentRole == "shopper"; }
         }
 
-        // True for roles that can propose or apply product edits - admin
-        // applies directly, an employee submits changes for admin review.
-        // "shopper" is deliberately excluded: no Edit Product button, and
-        // the Edit screen itself redirects away if reached by direct URL.
+        /// <summary>
+        /// True for roles allowed to propose or apply product edits (admin applies directly, employee submits for review). Gates both the
+        /// Edit Product button/link and the Edit action itself server-side.
+        /// </summary>
         public static bool CanEditProducts
         {
             get { return IsAdmin || IsEmployee; }
         }
 
-        // True for roles that can register brand-new products via Add
-        // Product. "shopper" is excluded here too - search/view only.
+        /// <summary>True for roles allowed to add brand-new products. Shopper is excluded - search/view only.</summary>
         public static bool CanAddProducts
         {
             get { return IsAdmin || IsEmployee; }
         }
 
-        // True for roles that have a personal "My People" allergen
-        // circle. Shopper-only now - admin never had it, and employee
-        // lost it per updated project requirements (an employee manages
-        // product data, not a personal allergy circle).
+        /// <summary>
+        /// True only for the shopper role - the one role with a personal "My People" allergen circle. Only shopper has it.
+        /// </summary>
         public static bool CanAccessMyPeople
         {
             get { return IsShopper; }
         }
 
-        /* ---------------- Recent searches / current product ---------------- */
-
-        // The full recent-searches list, most-recently-viewed first.
-        // Session-only by design (not persisted to the database) - it
-        // resets whenever the browser session ends.
+        /// <summary>
+        /// The full Recent Searches list, most-recently-viewed first. Session-only by design - never persisted to the database, so it
+        /// resets whenever the browser session ends.
+        /// </summary>
         public static List<RecentSearchItem> GetRecentSearches()
         {
             return HttpContext.Current.Session[RecentSearchesKey] as List<RecentSearchItem>
                    ?? new List<RecentSearchItem>();
         }
 
-        // The UPC of whichever product was most recently viewed - used by
-        // _Layout.cshtml to enable the "Product Info" nav link/back arrow
-        // even after navigating away to Home, My People, etc.
+        /// <summary>
+        /// The UPC of whichever product was most recently viewed, or  <c>null</c> if none this session. Drives <c>_Layout.cshtml</c>'s
+        /// "Product Info" nav link/back arrow even after navigating away.
+        /// </summary>
         public static decimal? CurrentProductUPC
         {
             get { return HttpContext.Current.Session[CurrentProductKey] as decimal?; }
         }
 
-        // Call this any time a product is actually shown to the person
-        // (after a search, after clicking a Recent Searches entry, after
-        // adding a new product, or when Product Info itself loads). Moves
-        // the product to the front of Recent Searches (or adds it) and
-        // marks it as the "current" product for header navigation.
+        /// <summary>
+        /// Records that <paramref name="product"/> was just shown to the person - moves it to the front of Recent Searches (adding it if
+        /// new), trims the list to <see cref="MaxRecentSearches"/>, and marks it as the "current" product for header navigation. 
+        /// Call this from every code path that actually displays a product (search, clicking a Recent Searches entry, adding a new product,
+        /// or Product Info loading directly).
+        /// </summary>
+        /// <param name="product">The product that was shown.</param>
+        /// <param name="hasAllergens">Whether it has any Contains/May-Contain allergen flagged, for the Recent Searches warning badge.</param>
         public static void RecordProductView(Product product, bool hasAllergens)
         {
             var list = GetRecentSearches();
@@ -182,11 +193,10 @@ namespace PIV11.Infrastructure
             HttpContext.Current.Session[CurrentProductKey] = product.UPC;
         }
 
-        // Call this when a product is deleted, so it immediately
-        // disappears from Recent Searches and stops being tracked as the
-        // "current product" for header navigation - without this, a
-        // deleted product kept showing up until the session reset itself
-        // (e.g. on logout).
+        /// <summary>
+        /// Call this when a product is deleted, so it immediately disappears from Recent Searches and stops being tracked as the "current
+        /// product" - without this it would keep showing up until the session next reset (e.g. on logout).
+        /// </summary>
         public static void ForgetProduct(decimal upc)
         {
             var list = GetRecentSearches();

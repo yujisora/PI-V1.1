@@ -3,15 +3,10 @@ using System.Collections.Generic;
 
 namespace PIV11.Models.ViewModels
 {
-    /* =====================================================================
-       AdminDashboardViewModel
-       Backs the admin-only dashboard shown in place of the normal search
-       Home page. Everything here is derived from existing Products/
-       EditHistory data - no new columns or tables. Notably, Products has
-       no creation-date column, so there's no way to show genuinely
-       "recently added" products chronologically - UneditedProducts (zero
-       EditHistory rows) is the closest honest proxy available.
-       ===================================================================== */
+
+    /// <summary>
+    /// The main view for the admin dashboard, which shows product totals, pending edits, recent activity, and a product lookup search box.
+    /// </summary>
     public class AdminDashboardViewModel
     {
         public int TotalProducts { get; set; }
@@ -21,16 +16,19 @@ namespace PIV11.Models.ViewModels
 
         public List<AdminProductSummary> UneditedProducts { get; set; }
         public List<AdminActivityItem> RecentActivity { get; set; }
-
-        // Populated only when a search was just attempted from the
-        // dashboard's compact "Product Lookup" box and didn't resolve
-        // straight to a single product (exact matches redirect directly
-        // to Product Info and never reach this viewmodel at all).
         public string SearchQuery { get; set; }
+        /// <summary>
+        /// SearchQuery is the search term entered by the admin.
+        /// </summary>  
         public string SearchError { get; set; }
+        /// <summary>
+        /// SearchError is a message indicating any error that occurred during the search process, such as invalid input or no results found. 
+        /// </summary>
         public string SearchNotFoundMessage { get; set; }
+        /// <summary>
+        /// SearchNotFoundMessage is a message displayed when no products match the search query.
+        /// </summary>
         public List<ProductSearchResultViewModel> SearchResults { get; set; }
-
         public AdminDashboardViewModel()
         {
             UneditedProducts = new List<AdminProductSummary>();

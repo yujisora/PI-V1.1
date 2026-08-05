@@ -9,6 +9,11 @@ namespace PIV11
 {
     public class RouteConfig
     {
+        /// <summary>
+        /// Registers the default route for the application. The default route pattern is "{controller}/{action}/{id}", 
+        /// with "Home" as the default controller, "Index" as the default action, and an optional "id" parameter.
+        /// </summary>
+        /// <param name="routes"></param>
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");

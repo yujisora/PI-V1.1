@@ -7,19 +7,11 @@ using PIV11.Models.ViewModels;
 
 namespace PIV11.Controllers
 {
-    /* =====================================================================
-       PeopleController
-       "My People" - groups and members with their own allergen profiles,
-       scoped per logged-in account (People.OwnerUsername). Available to
-       both "user" and "shopper" roles (SessionHelper.CanAccessMyPeople) -
-       admin does not have a personal People list, matching the original
-       design.
-
-       There's no separate Groups table - GroupName is just a text field
-       on each Person row, so a group only exists for as long as at least
-       one person uses that name. Renaming a whole group isn't a separate
-       action; editing each member's Group field individually covers it.
-       ===================================================================== */
+    /// <summary>
+    /// PeopleController handles the "My People" feature, allowing users to manage groups and members with their own allergen profiles.
+    /// It is scoped per logged-in account (<see cref="People.OwnerUsername"/>) and is available to both "user" and "shopper" roles 
+    /// (<see cref="SessionHelper.CanAccessMyPeople"/>). Admins do not have a personal People list.
+    /// </summary>
     public class PeopleController : Controller
     {
         // GET: /People/Index
@@ -61,6 +53,14 @@ namespace PIV11.Controllers
         // GET: /People/MemberForm            -> add a brand-new person
         // GET: /People/MemberForm?groupName=X -> add a person, group prefilled
         // GET: /People/MemberForm?id=X        -> edit an existing person
+        /// <summary>
+        /// MemberForm is used for both adding a new person and editing an existing one.
+        /// The presence of the "<c>id</c>" parameter indicates an edit operation, while its absence indicates a new person addition. 
+        /// The "<c>groupName</c>" parameter can be used to prefill the group name when adding a new person.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="groupName"></param>
+        /// <returns></returns>
         public ActionResult MemberForm(int? id, string groupName)
         {
             if (!SessionHelper.CanAccessMyPeople)
@@ -102,9 +102,14 @@ namespace PIV11.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// This action handles the submission of the MemberForm, either creating a new person or updating an existing one 
+        /// based on the provided model.
+        /// Model validation is performed, and the user is redirected back to the index page upon successful save.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         // POST: /People/MemberForm
-        // model.PersonID being 0 (default) vs. a real ID is what decides
-        // whether this creates a new person or updates an existing one.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult MemberForm(MemberFormViewModel model)
@@ -156,7 +161,12 @@ namespace PIV11.Controllers
 
             return RedirectToAction("Index");
         }
-
+        /// <summary>
+        /// This action handles the deletion of a person from the "My People" list. It checks if the user has access to manage their people, 
+        /// retrieves the person by ID and owner username, and removes them from the database if found.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         // POST: /People/DeleteMember
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -180,8 +190,12 @@ namespace PIV11.Controllers
 
             return RedirectToAction("Index");
         }
-        // Existing group names for the current account, used to populate
-        // the Group dropdown on the Add/Edit Person form.
+        /// <summary>
+        /// This private method retrieves a list of distinct group names associated with the current user's people.
+        /// It queries the database for people owned by the current user.
+        /// </summary>
+        /// <returns>A list of distinct group names associated with the current user's people.</returns>
+   
         private List<string> GetExistingGroupNames()
         {
             using (var db = new NorteMartContext())

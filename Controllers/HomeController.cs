@@ -9,20 +9,22 @@ using PIV11.Models.ViewModels;
 
 namespace PIV11.Controllers
 {
-    /* =====================================================================
-       HomeController
-       The Home/search screen, Recent Searches, and Add Product. All three
-       are grouped here (rather than split into separate controllers)
-       because they're all part of the same "find or add a product"
-       workflow the mockup groups under the Home/Recent screens.
-       ===================================================================== */
+    /// <summary>
+    /// The consumer search flow (<see cref="Index"/>, <see cref="Search"/>),
+    /// Recent Searches (<see cref="Recent"/>), Add Product
+    /// (<see cref="AddProduct(string)"/> / <see cref="AddProduct(AddProductViewModel)"/>),
+    /// and the entire admin dashboard including its own inline search box
+    /// (<see cref="AdminDashboard"/>, <see cref="ShowSearchFeedback"/>,
+    /// <see cref="Activity"/>).
+    /// </summary>
     public class HomeController : Controller
     {
-        // GET: / and /Home/Index
-        // The empty search box + feature cards for guest/user/shopper.
-        // Admin sees a dashboard instead (see AdminDashboard() below) -
-        // an admin is mostly reviewing/managing data, not searching for
-        // products the way a shopper would.
+        /// <summary>
+        /// GET: <c>/</c> and <c>/Home/Index</c>. Shows the search hero page
+        /// for guest/employee/shopper. Admin sees the Dashboard instead (see
+        /// <see cref="AdminDashboard"/>) - admin is mostly reviewing/managing
+        /// data, not searching for products the way a shopper would.
+        /// </summary>
         public ActionResult Index()
         {
             ViewBag.ActiveScreen = "Home";
@@ -36,13 +38,13 @@ namespace PIV11.Controllers
             return View(new HomeSearchViewModel());
         }
 
-        // Admin-only dashboard: total products, edit-review counts, a
-        // list of products with no edit history yet (the closest
-        // available proxy for "recently added / not yet reviewed" -
-        // Products has no creation-date column to sort by chronologically),
-        // and the most recent Edit History activity across all products.
-        // Everything here comes from existing Products/EditHistory data -
-        // no new columns or tables.
+        /// <summary>
+        /// Admin-only dashboard: stat counts, a list of products with no
+        /// edit history yet (the closest available proxy for "recently
+        /// added," since <c>Products</c> has no creation-date column), and
+        /// the 10 most recent edits across every product. Built entirely
+        /// from existing data - no new schema.
+        /// </summary>
         private ActionResult AdminDashboard()
         {
             using (var db = new NorteMartContext())
@@ -53,12 +55,14 @@ namespace PIV11.Controllers
             }
         }
 
-        // Builds the dashboard's data, separated from AdminDashboard()
-        // itself so ShowSearchFeedback() below can reuse it too - a
-        // search attempted from the dashboard's compact lookup box needs
-        // to redisplay the FULL dashboard (stats, unedited products,
-        // recent activity) with the search result/error layered on top,
-        // not just the search feedback on its own.
+        /// <summary>
+        /// Builds the full <see cref="AdminDashboardViewModel"/> - stat
+        /// counts, unedited products, recent activity. Kept separate from
+        /// <see cref="AdminDashboard"/> so <see cref="ShowSearchFeedback"/>
+        /// can reuse it too: a search from the dashboard's own lookup box
+        /// needs to redisplay the entire dashboard with the search result
+        /// layered on top, not just the search feedback alone.
+        /// </summary>
         private AdminDashboardViewModel BuildAdminDashboardViewModel(NorteMartContext db)
         {
             var vm = new AdminDashboardViewModel
@@ -101,15 +105,15 @@ namespace PIV11.Controllers
             return vm;
         }
 
-        // GET: /Home/Search?query=...
-        // Figures out whether the typed text looks like a barcode or a
-        // product name/brand, and either:
-        //   - redirects straight to Product Info (exact barcode match, or
-        //     a name search that matched exactly one product), or
-        //   - shows a short pick-list (name search matched several), or
-        //   - shows an error/not-found message back on the Home screen
-        //     (or, for admin, back on the Dashboard - see
-        //     ShowSearchFeedback() below).
+        /// <summary>
+        /// GET: <c>/Home/Search?query=...</c>. Detects whether
+        /// <paramref name="query"/> looks like a barcode (all digits) or a
+        /// name/brand search, then either redirects straight to Product Info
+        /// (exact match), shows a pick-list (multiple name matches), or
+        /// shows an error/not-found message via <see cref="ShowSearchFeedback"/>.
+        /// Used identically by the consumer search box and the admin
+        /// dashboard's own inline search box.
+        /// </summary>
         public ActionResult Search(string query)
         {
             ViewBag.ActiveScreen = "Home";
@@ -128,6 +132,10 @@ namespace PIV11.Controllers
                 // A query made up entirely of digits is treated as a
                 // barcode attempt and validated strictly. Anything else is
                 // treated as a name/brand search instead.
+                // Una consulta compuesta enteramente de dígitos se
+                // trata como un intento de código de barras y se
+                // valida estrictamente. Cualquier otra cosa se trata
+                // como una búsqueda por nombre/marca.
                 if (Regex.IsMatch(trimmed, @"^\d+$"))
                 {
                     string barcodeError;
@@ -184,6 +192,19 @@ namespace PIV11.Controllers
         // it inside the Dashboard shell (their "Home" screen is the
         // dashboard, not the consumer search page); everyone else sees
         // the normal Index search page.
+        // Renderiza lo que la búsqueda no resolvió directamente (un
+        // error, un mensaje de "no encontrado", o una lista para
+        // elegir con varias coincidencias). Admin lo ve dentro del
+        // marco del Panel (su pantalla de "Inicio" es el panel, no
+        // la página de búsqueda del consumidor); todos los demás ven
+        // la página de búsqueda Index normal.
+        /// <summary>
+        /// Renders whatever <see cref="Search"/> didn't resolve directly to a
+        /// single product. Admin sees it embedded in the full Dashboard
+        /// shell (rebuilt via <see cref="BuildAdminDashboardViewModel"/>,
+        /// with the search fields layered on top); everyone else sees the
+        /// normal consumer <c>Index</c> page.
+        /// </summary>
         private ActionResult ShowSearchFeedback(HomeSearchViewModel model)
         {
             if (!SessionHelper.IsAdmin)
@@ -210,6 +231,20 @@ namespace PIV11.Controllers
         // show at all) - and that same "all products" list can also be
         // requested explicitly via ?all=true even when recent searches
         // does have entries, as a simple way to browse everything.
+        // GET: /Home/Recent?all=true
+        // Normalmente lista las Búsquedas Recientes de la sesión.
+        // Recae en mostrar todos los productos registrados
+        // automáticamente cuando aún no hay nada reciente (una
+        // sesión nueva de lo contrario no tendría nada que mostrar)
+        // - y esa misma lista de "todos los productos" también se
+        // puede solicitar explícitamente mediante ?all=true incluso
+        // cuando las búsquedas recientes sí tienen entradas, como
+        // una forma simple de explorar todo.
+        /// <summary>
+        /// GET: <c>/Home/Recent?all=true</c>. Lists the session's Recent
+        /// Searches, or every registered product when <paramref name="all"/>
+        /// is <c>true</c> or there's nothing recent yet to show.
+        /// </summary>
         public ActionResult Recent(bool all = false)
         {
             ViewBag.ActiveScreen = "Recent";
@@ -239,9 +274,12 @@ namespace PIV11.Controllers
             }
         }
 
-        // GET: /Home/AddProduct?upc=...
-        // Shows the Add Product form. If reached via the "Add it here"
-        // link after a failed barcode search, the barcode is prefilled.
+        /// <summary>
+        /// GET: <c>/Home/AddProduct?upc=...</c>. Shows the Add Product form.
+        /// If reached via the "Add it here" link after a failed barcode
+        /// search, <paramref name="upc"/> pre-fills the barcode field.
+        /// Restricted to <see cref="SessionHelper.CanAddProducts"/> roles.
+        /// </summary>
         public ActionResult AddProduct(string upc)
         {
             if (!SessionHelper.IsLoggedIn)
@@ -264,6 +302,19 @@ namespace PIV11.Controllers
         // are left for the Edit screen (a later phase) to fill in -
         // matching the mockup, where a freshly-added product starts with
         // default/empty nutrition data too.
+        // POST: /Home/AddProduct
+        // Valida e inserta un producto completamente nuevo (filas de
+        // Products + Foodstuffs). Los datos nutricionales, alérgenos
+        // y sellos de advertencia se dejan para que la pantalla de
+        // Edición (una fase posterior) los complete - coincide con
+        // el mockup, donde un producto recién agregado también
+        // comienza con datos nutricionales predeterminados/vacíos.
+        /// <summary>
+        /// POST: <c>/Home/AddProduct</c>. Validates and inserts a brand-new
+        /// <c>Products</c> + <c>Foodstuffs</c> row. Nutrition facts, allergens,
+        /// and warning seals are deliberately left for a later Edit to fill
+        /// in. Redirects straight to the new product's Info page on success.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AddProduct(AddProductViewModel model)
@@ -332,6 +383,20 @@ namespace PIV11.Controllers
         // Dashboard's "Recent Activity" section (capped at 10, mixed
         // statuses), this shows every matching EditHistory record with no
         // cap, filtered to one status at a time.
+        // GET: /Home/Activity?status=pending|approved|denied (u
+        // omitido para todos)
+        // Solo admin. Las tarjetas de estadísticas del panel
+        // enlazan aquí - a diferencia de la sección "Actividad
+        // Reciente" del Panel (limitada a 10, estados mezclados),
+        // esta muestra cada registro de EditHistory que coincida
+        // sin límite, filtrado a un estado a la vez.
+        /// <summary>
+        /// GET: <c>/Home/Activity?status=pending|approved|denied</c>. Admin
+        /// only. Every matching <see cref="EditHistoryRecord"/> across every
+        /// product, unlike the dashboard's own "Recent Activity" section
+        /// (which is capped at 10 and mixes all statuses together).
+        /// </summary>
+        /// <param name="status">One of <c>"pending"</c>/<c>"approved"</c>/<c>"denied"</c>; anything else shows all statuses.</param>
         public ActionResult Activity(string status)
         {
             if (!SessionHelper.IsAdmin)
@@ -376,11 +441,25 @@ namespace PIV11.Controllers
         }
 
         /* ---------------- Helpers ---------------- */
+        // ---------------- Ayudantes ----------------
 
         // Ports the mockup's validateUPC() logic exactly: accepts a
         // 12-digit UPC-A or 13-digit EAN-13, normalizes to 13 digits, and
         // checks the EAN-13 check digit. Returns null + an error message
         // on any failure.
+        // Traslada exactamente la lógica validateUPC() del mockup:
+        // acepta un UPC-A de 12 dígitos o un EAN-13 de 13 dígitos,
+        // normaliza a 13 dígitos, y verifica el dígito de control de
+        // EAN-13. Devuelve null + un mensaje de error ante cualquier
+        // fallo.
+        /// <summary>
+        /// Validates a barcode string: must be 12 or 13 digits, normalized to
+        /// 13 (left-padding a 12-digit UPC-A with a zero), with a real EAN-13
+        /// check-digit verification - not just a length check.
+        /// </summary>
+        /// <param name="trimmed">The already-trimmed candidate barcode string.</param>
+        /// <param name="error">Set to a specific failure message when validation fails.</param>
+        /// <returns>The normalized 13-digit barcode as a <see cref="decimal"/>, or <c>null</c> on any failure.</returns>
         private decimal? ValidateBarcode(string trimmed, out string error)
         {
             error = null;
@@ -409,6 +488,12 @@ namespace PIV11.Controllers
         // True if the product has ANY allergen flagged (contains OR may
         // contain) - used to show the amber warning badge in search
         // results / recent searches, without needing the full lists.
+        // Verdadero si el producto tiene ALGÚN alérgeno marcado
+        // (contiene O puede contener) - se usa para mostrar la
+        // insignia de advertencia ámbar en resultados de
+        // búsqueda/búsquedas recientes, sin necesitar las listas
+        // completas.
+        /// <summary>True if the product has any allergen flagged (Contains OR May-Contain) - drives the amber warning badge without needing the full lists.</summary>
         private bool HasAnyAllergenInfo(Product product)
         {
             List<string> contains, mayContain;
@@ -416,6 +501,7 @@ namespace PIV11.Controllers
             return contains.Count > 0 || mayContain.Count > 0;
         }
 
+        /// <summary>Maps a <see cref="Product"/> to the lightweight shape used by the search results/pick-list.</summary>
         private ProductSearchResultViewModel ToSearchResult(Product p)
         {
             return new ProductSearchResultViewModel
@@ -430,6 +516,16 @@ namespace PIV11.Controllers
         // Converts a full Product into the lightweight shape the Recent
         // Searches view renders - reused when falling back to "show every
         // registered product" (see Recent() above).
+        // Convierte un Product completo en la forma ligera que
+        // renderiza la vista de Búsquedas Recientes - se reutiliza
+        // al recaer en "mostrar todos los productos registrados"
+        // (ver Recent() arriba).
+        /// <summary>
+        /// Maps a <see cref="Product"/> to the lightweight
+        /// <see cref="RecentSearchItem"/> shape the Recent Searches view
+        /// renders - reused when falling back to "show every registered
+        /// product" (see <see cref="Recent"/>).
+        /// </summary>
         private RecentSearchItem ToRecentSearchItem(Product p)
         {
             return new RecentSearchItem

@@ -5,33 +5,32 @@ using PIV11.Models.ViewModels;
 
 namespace PIV11.Infrastructure
 {
-    /* =====================================================================
-       FieldChangeInfo
-       One detected difference between the live data and a submitted Edit
-       form. FieldKey is a stable identifier used both to store the change
-       (EditHistory.FieldChanged) and to re-apply it later (ApplyChange
-       switches on this same string) - so a pending change can always be
-       traced back to exactly one column, with no guessing or parsing.
 
-       FieldKey formats:
-           "ProductName", "Brand", "ImageUrl", "NetVolume", "UnitMeasurement", "Ingredients"
-           "Allergen:<Key>"   e.g. "Allergen:Milk"      (see AllergenHelper.Keys)
-           "Nutrition:<Col>"  e.g. "Nutrition:Calories" (matches NutritionData column names)
-           "Seal:<Col>"       e.g. "Seal:ExCalories"    (matches HealthAlert column names)
-       ===================================================================== */
+    /// <summary>
+    /// One detected difference between the live product data and a submitted Edit form - either applied immediately or stored as a pending
+    /// <c>EditHistory</c> record, depending on who's saving and whether the field already had a value.
+    /// See <see cref="ProductEditHelper.ApplyChange"/>.
+    /// </summary>
     public class FieldChangeInfo
     {
+        /// <summary>
+        /// Stable identifier for exactly which column this change belongs to (e.g. <c>"ProductName"</c>, <c>"Allergen:Milk"</c>,
+        /// <c>"Nutrition:Calories"</c>, <c>"Seal:ExCalories"</c>). Used both to persist the change and to re-apply it later.
+        /// </summary>
         public string FieldKey { get; set; }
+
+        /// <summary>Human-readable label for this field, shown in Edit History.</summary>
         public string DisplayLabel { get; set; }
+
+        /// <summary>The new value, as a string, ready to store or apply.</summary>
         public string NewValue { get; set; }
     }
 
-    /* =====================================================================
-       SealDefinition
-       Static metadata for the 8 warning seals - shared by the Edit
-       screen's checkbox list and Product Info's active-badge display, so
-       both always agree on labels/shape without duplicating them.
-       ===================================================================== */
+    /// <summary>
+    /// Static metadata for one warning seal (label, optional sub-label, and whether it renders as an octagon or a rounded rectangle). 
+    /// Shared by the Edit screen's checkbox list and Product Info's active-badge display
+    /// via <see cref="ProductEditHelper.SealDefinitions"/>.
+    /// </summary>
     public class SealDefinition
     {
         public string Key;
@@ -44,11 +43,16 @@ namespace PIV11.Infrastructure
         }
     }
 
+    /// <summary>
+    /// The core of the product edit/approval system: static definitions for the warning seals and nutrition fields, functions that diff a
+    /// submitted Edit form against the live data (<c>Compute*Changes</c>), and <see cref="ApplyChange"/> - the single method that knows how to
+    /// write each field back, reused identically by a direct admin save, filling in a brand-new row, and approving one pending edit.
+    /// </summary>
     public static class ProductEditHelper
     {
-        // The 7 seals, in the display order used throughout the app -
-        // matches the mockup exactly (the earlier "Excess Fat" 8th seal
-        // was removed per project feedback).
+        /// <summary>
+        /// The 7 warning seals, in display order.
+        /// </summary>
         public static readonly SealDefinition[] SealDefinitions =
         {
             new SealDefinition("ExCalories", "Excess\nCalories", null, true),
@@ -60,8 +64,10 @@ namespace PIV11.Infrastructure
             new SealDefinition("HasSweeteners", "Contains Sweeteners", "Not recommended in children", false),
         };
 
-        // The 10 core nutrition facts, in the mockup's display order, with
-        // the matching NutritionData column name and display unit.
+        /// <summary>
+        /// The 10 core nutrition facts, in display order, each paired with its matching <c>NutritionData</c> column name,
+        /// display unit, and whether it renders indented (a sub-item of the row above).
+        /// </summary>
         public static readonly (string Column, string Label, string Unit, bool Indented)[] NutritionFields =
         {
             ("Calories", "Calories", "kcal", false),
@@ -77,7 +83,14 @@ namespace PIV11.Infrastructure
         };
 
         /* ---------------- Compute (diff submitted vs current) ---------------- */
+        // ---------------- Calcular (comparar lo enviado contra lo actual) ----------------
 
+        /// <summary>
+        /// Diffs the core product fields (name, brand, image, weight, unit)
+        /// on <paramref name="model"/> against the live <paramref name="product"/>/
+        /// <paramref name="foodstuff"/> data.
+        /// </summary>
+        /// <returns>One <see cref="FieldChangeInfo"/> per field that actually changed.</returns>
         public static List<FieldChangeInfo> ComputeCoreChanges(Product product, Foodstuff foodstuff, EditProductViewModel model)
         {
             var changes = new List<FieldChangeInfo>();
@@ -105,6 +118,11 @@ namespace PIV11.Infrastructure
             return changes;
         }
 
+        /// <summary>
+        /// Diffs the ingredients text and all 10 allergen tri-state values on
+        /// <paramref name="model"/> against the live <paramref name="row"/>.
+        /// </summary>
+        /// <returns>One <see cref="FieldChangeInfo"/> per field/allergen that actually changed.</returns>
         public static List<FieldChangeInfo> ComputeIngredientsChanges(IngredientsAllergen row, EditProductViewModel model)
         {
             var changes = new List<FieldChangeInfo>();
@@ -131,6 +149,10 @@ namespace PIV11.Infrastructure
             return changes;
         }
 
+        /// <summary>
+        /// Diffs all 10 nutrition fields on <paramref name="model"/> against the live <paramref name="row"/>.
+        /// </summary>
+        /// <returns>One <see cref="FieldChangeInfo"/> per nutrition field that actually changed.</returns>
         public static List<FieldChangeInfo> ComputeNutritionChanges(NutritionData row, EditProductViewModel model)
         {
             var changes = new List<FieldChangeInfo>();
@@ -151,6 +173,11 @@ namespace PIV11.Infrastructure
             return changes;
         }
 
+        /// <summary>
+        /// Diffs all 7 warning seal checkboxes on <paramref name="model"/> against
+        /// the live <paramref name="row"/>.
+        /// </summary>
+        /// <returns>One <see cref="FieldChangeInfo"/> per seal whose checked state actually changed.</returns>
         public static List<FieldChangeInfo> ComputeSealChanges(HealthAlert row, EditProductViewModel model)
         {
             var changes = new List<FieldChangeInfo>();
@@ -171,11 +198,25 @@ namespace PIV11.Infrastructure
             return changes;
         }
 
-        /* ---------------- Apply (write one change back to the entities) ---------------- */
+        //Apply (write one change back to the entities
 
         // Applies ONE change to whichever entity it belongs to. Used for:
         // direct admin saves, filling in brand-new rows, and approving a
         // single pending EditHistory record.
+
+            // Aplicar (escribir un cambio de vuelta en las entidades)
+
+            // Aplica UN cambio a la entidad a la que pertenece. Se usa
+            // para: guardados directos de admin, completar filas
+            // recién creadas, y aprobar un único registro pendiente de
+            // EditHistory.
+
+        /// <summary>
+        /// Writes one <paramref name="change"/> to whichever entity it belongs to, resolved by <see cref="FieldChangeInfo.FieldKey"/>. 
+        /// This is the single place that knows how to read/write each field - reused identically by a direct admin save, 
+        /// filling in a brand-new row, and approving one pending <c>EditHistory</c> record, so the
+        /// diff/apply logic never has to change when the routing decision (who saves directly vs. who gets queued) changes.
+        /// </summary>
         public static void ApplyChange(FieldChangeInfo change, Product product, Foodstuff foodstuff, IngredientsAllergen ia, NutritionData nd, HealthAlert ha)
         {
             switch (change.FieldKey)
@@ -202,8 +243,7 @@ namespace PIV11.Infrastructure
             }
         }
 
-        /* ---------------- Small internal plumbing ---------------- */
-
+        /// <summary>Parses a nullable int, returning <c>null</c> for blank/unparsable text instead of throwing.</summary>
         private static int? ParseIntOrNull(string text)
         {
             int result;
@@ -211,6 +251,7 @@ namespace PIV11.Infrastructure
             return int.TryParse(text.Trim(), out result) ? (int?)result : null;
         }
 
+        /// <summary>Reads the raw submitted string for one nutrition column off the Edit form model.</summary>
         private static string GetModelNutritionString(EditProductViewModel m, string column)
         {
             switch (column)
@@ -229,6 +270,9 @@ namespace PIV11.Infrastructure
             }
         }
 
+        /// <summary>Reads the current value of one nutrition column off a <see cref="NutritionData"/> row, by column name.</summary>
+        /// <param name="row">The row to read from; <c>null</c> safely returns <c>null</c>.</param>
+        /// <param name="column">One of <see cref="NutritionFields"/>' <c>Column</c> values.</param>
         public static int? GetNutritionValue(NutritionData row, string column)
         {
             if (row == null) return null;
@@ -248,6 +292,7 @@ namespace PIV11.Infrastructure
             }
         }
 
+        /// <summary>Writes one nutrition column's value onto a <see cref="NutritionData"/> row, by column name.</summary>
         private static void SetNutritionValue(NutritionData row, string column, int? value)
         {
             switch (column)
@@ -265,6 +310,7 @@ namespace PIV11.Infrastructure
             }
         }
 
+        /// <summary>Reads the checked state of one seal checkbox off the Edit form model, by seal key.</summary>
         private static bool GetModelSealValue(EditProductViewModel m, string key)
         {
             switch (key)
@@ -280,6 +326,9 @@ namespace PIV11.Infrastructure
             }
         }
 
+        /// <summary>Reads whether one seal is currently active on a <see cref="HealthAlert"/> row, by seal key.</summary>
+        /// <param name="row">The row to read from; <c>null</c> safely returns <c>false</c>.</param>
+        /// <param name="key">One of <see cref="SealDefinitions"/>' <c>Key</c> values.</param>
         public static bool GetSealValue(HealthAlert row, string key)
         {
             if (row == null) return false;
@@ -296,6 +345,7 @@ namespace PIV11.Infrastructure
             }
         }
 
+        /// <summary>Writes one seal's active state onto a <see cref="HealthAlert"/> row, by seal key.</summary>
         private static void SetSealValue(HealthAlert row, string key, bool value)
         {
             switch (key)

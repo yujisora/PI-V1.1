@@ -9,15 +9,31 @@ using PIV11.Models.ViewModels;
 
 namespace PIV11.Controllers
 {
-    /* =====================================================================
-       ProductController
-       Product Info (view), Edit (form), and Edit History (admin review
-       queue) - everything that revolves around one specific product,
-       identified by its UPC.
-       ===================================================================== */
+
+    // ProductController
+
+    // Product Info (view), Edit (form), and Edit History (admin review queue) - everything that revolves around one specific product,
+    // identified by its UPC.
+
+        // ProductController
+
+        // Información del Producto (vista), Editar (formulario), e Historial de Ediciones (cola de revisión de admin) - todo
+        // lo que gira en torno a un producto específico, identificado por su UPC.
+
+    /// <summary>
+    /// Everything that revolves around one specific product: viewing it (<see cref="Info"/>), editing it (<see cref="Edit(decimal)"/> /
+    /// <see cref="Edit(EditProductViewModel)"/>), and admin's review queue for pending edits (<see cref="History"/>, <see cref="ApproveEdit"/>,
+    /// <see cref="DenyEdit"/>).
+    /// </summary>
     public class ProductController : Controller
     {
-        // GET: /Product/Info?upc=...
+        /// <summary>
+        /// GET: <c>/Product/Info?upc=...</c>. Shows the full product detail page - image, allergens, ingredients, nutrition table, active
+        /// warning seals, and (shopper only) the My People danger/caution/ safe panel. No login required. Also records this as the
+        /// "current product" for Recent Searches/header nav via <see cref="SessionHelper.RecordProductView"/>, regardless of how
+        /// the product was reached.
+        /// </summary>
+        /// <param name="upc">The product's barcode. Redirects to Home if no matching product exists.</param>
         public ActionResult Info(decimal upc)
         {
             using (var db = new NorteMartContext())
@@ -37,9 +53,11 @@ namespace PIV11.Controllers
                 List<string> contains, mayContain;
                 AllergenHelper.SplitContainsAndMayContain(product.IngredientsAllergens, out contains, out mayContain);
 
-                // Keep Session's "current product" / Recent Searches in sync
-                // even when this product was reached without going through
+                // Keep Session's "current product" / Recent Searches in sync even when this product was reached without going through
                 // Home's search (nav pill, Recent Searches list, My People, etc).
+
+                    // Mantiene el "producto actual" de Session / Búsquedas Recientes sincronizados incluso cuando se llegó a
+                    // este producto sin pasar por la búsqueda de Inicio (píldora de navegación, lista de Búsquedas Recientes, Mi Gente, etc).
                 SessionHelper.RecordProductView(product, contains.Count > 0 || mayContain.Count > 0);
 
                 var vm = new ProductInfoViewModel
@@ -55,10 +73,12 @@ namespace PIV11.Controllers
                     AllergensMayContain = mayContain
                 };
 
-                // Nutrition facts, in display order. Trans Fat is skipped
-                // entirely when it's zero/empty - matches the mockup,
-                // which hides a zero Trans Fat row in VIEW mode only (the
-                // Edit screen always shows every field).
+                // Nutrition facts, in display order. Trans Fat is skipped entirely when it's zero/empty - optional nutrient,
+                // which hides a zero Trans Fat row in VIEW mode only (the Edit screen always shows every field).
+
+                    // Datos nutricionales, en orden de visualización. Grasas Trans se omite por completo cuando es
+                    // cero/vacío - nutrimento opcional, que oculta una fila de Grasas Trans en cero solo en modo VISTA (la
+                    // pantalla de Edición siempre muestra todos los campos).
                 foreach (var field in ProductEditHelper.NutritionFields)
                 {
                     int? value = ProductEditHelper.GetNutritionValue(product.NutritionData, field.Column);
@@ -75,8 +95,8 @@ namespace PIV11.Controllers
                     });
                 }
 
-                // Only the ACTIVE seals are shown on Product Info (the Edit
-                // screen shows all 8 regardless of state).
+                // Only the ACTIVE seals are shown on Product Info (the Edit screen shows all 8 regardless of state).
+                    // Solo se muestran los sellos ACTIVOS en Información del Producto (la pantalla de Edición muestra los 8 sin importar su estado).
                 foreach (var seal in ProductEditHelper.SealDefinitions)
                 {
                     bool isActive = ProductEditHelper.GetSealValue(product.HealthAlert, seal.Key);
@@ -94,12 +114,14 @@ namespace PIV11.Controllers
                 }
 
                 // My People panel - user and shopper roles.
+                    // Panel de Mi Gente - roles user y shopper.
                 if (SessionHelper.CanAccessMyPeople)
                 {
                     vm.MyPeopleGroups = BuildMyPeopleGroups(db, contains, mayContain);
                 }
 
                 // Pending-edit badge - admin role only.
+                    // Insignia de edición pendiente - solo rol admin.
                 if (SessionHelper.IsAdmin)
                 {
                     vm.PendingEditCount = db.EditHistory.Count(e => e.UPC == upc && e.Status == "pending");
@@ -112,7 +134,11 @@ namespace PIV11.Controllers
             }
         }
 
-        // GET: /Product/Edit?upc=...
+        /// <summary>
+        /// GET: <c>/Product/Edit?upc=...</c>. Shows the Edit form pre-filled with the product's current data. Restricted to
+        /// <see cref="SessionHelper.CanEditProducts"/> roles - redirects to Login if not logged in, or back to Info (not Home) if logged in
+        /// but lacking permission, so a shopper stays in context rather than being bounced somewhere unrelated.
+        /// </summary>
         public ActionResult Edit(decimal upc)
         {
             if (!SessionHelper.IsLoggedIn)
@@ -173,12 +199,26 @@ namespace PIV11.Controllers
         }
 
         // POST: /Product/Edit
+
         // Admin: every change applies immediately.
-        // Logged-in "user": changes to fields that already had a value go
-        // into EditHistory as "pending" instead of touching live data;
-        // filling in previously-empty nutrition/allergen/seal data (e.g.
-        // right after Add Product) applies immediately for anyone, since
+        // Logged-in "user": changes to fields that already had a value go into EditHistory as "pending" instead of touching live data;
+        // filling in previously-empty nutrition/allergen/seal data (e.g. right after Add Product) applies immediately for anyone, since
         // there's nothing established yet to protect.
+
+            // POST: /Product/Edit
+
+            // Admin: cada cambio se aplica de inmediato.
+            // "user" con sesión iniciada: los cambios a campos que ya tenían un valor van a EditHistory como "pending" en lugar
+            // de tocar los datos en vivo; completar datos de nutrición/alérgeno/sello previamente vacíos (por ejemplo,
+            // justo después de Agregar Producto) se aplica de inmediato para cualquiera, ya que no hay nada establecido todavía que proteger.
+
+        /// <summary>
+        /// POST: <c>/Product/Edit</c>. Diffs the submitted form against the live data for all four child entities (creating any that don't
+        /// exist yet) and either applies or queues each detected change via <see cref="ApplyOrQueue"/>. Core fields (name/brand/image/weight/
+        /// unit) always route normally; ingredients/nutrition/seals bypass the pending queue entirely if this is the first time that section
+        /// has ever been saved for this product (nothing established yet to protect). Sets <c>TempData["EditMessage"]</c> depending on whether
+        /// anything actually went to pending review, then redirects to Info.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(EditProductViewModel model)
@@ -234,10 +274,12 @@ namespace PIV11.Controllers
                 string username = SessionHelper.CurrentUsername;
                 int pendingCount = 0;
 
-                // Product name/brand/image/weight/unit always already have
-                // real values (Add Product guarantees Products+Foodstuffs
-                // exist), so these always go through the normal role-based
-                // routing - never treated as "brand new".
+                // Product name/brand/image/weight/unit always already have real values (Add Product guarantees Products+Foodstuffs
+                // exist), so these always go through the normal role-based routing - never treated as "brand new".
+
+                    // El nombre/marca/imagen/peso/unidad del producto siempre tienen ya valores reales (Agregar Producto
+                    // garantiza que Products+Foodstuffs existan), así que estos siempre pasan por el enrutamiento normal
+                    // basado en rol - nunca se tratan como "recién creados".
                 pendingCount += ApplyOrQueue(db,
                     ProductEditHelper.ComputeCoreChanges(product, foodstuff, model),
                     product, foodstuff, ia, nd, ha, bypassPending: false, username: username);
@@ -264,7 +306,10 @@ namespace PIV11.Controllers
             }
         }
 
-        // GET: /Product/History?upc=... (admin only)
+        /// <summary>
+        /// GET: <c>/Product/History?upc=...</c>. Admin only. Lists every <see cref="EditHistoryRecord"/> for this product (any status),
+        /// newest first, with Approve/Deny actions on pending rows.
+        /// </summary>
         public ActionResult History(decimal upc)
         {
             if (!SessionHelper.IsAdmin)
@@ -298,8 +343,11 @@ namespace PIV11.Controllers
             }
         }
 
-        // POST: /Product/ApproveEdit (admin only)
-        // Actually applies the pending change to the live product data.
+        /// <summary>
+        /// POST: <c>/Product/ApproveEdit</c>. Admin only. Actually applies the pending change to the live product data (via
+        /// <see cref="ProductEditHelper.ApplyChange"/> - the same method a direct admin save uses), creating any missing child entity first,
+        /// then marks the record <c>"approved"</c>. Does nothing if the record isn't found or isn't still pending.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ApproveEdit(int editId, decimal upc)
@@ -339,7 +387,10 @@ namespace PIV11.Controllers
             return RedirectToAction("History", new { upc = upc });
         }
 
-        // POST: /Product/DenyEdit (admin only)
+        /// <summary>
+        /// POST: <c>/Product/DenyEdit</c>. Admin only. Marks a pending record <c>"denied"</c> without touching any product data. Does nothing if
+        /// the record isn't found or isn't still pending.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult DenyEdit(int editId, decimal upc)
@@ -362,11 +413,16 @@ namespace PIV11.Controllers
             return RedirectToAction("History", new { upc = upc });
         }
 
-        // POST: /Product/Delete (admin only)
-        // Deletes the Products row; the database cascades the delete to
-        // Foodstuffs/NutritionData/IngredientsAllergens/HealthAlert/
-        // EditHistory automatically (see 02_Add_Delete_Cascade.sql) - EF
-        // only needs to remove the one row.
+        // POST: /Product/Delete (solo admin)
+        // Elimina la fila de Products; la base de datos hace cascada en la eliminación (On Delete Cascade) de todas las tablas hijas
+        // automáticamente, así que EF solo elimina esa fila. También llama a SessionHelper.ForgetProduct para que el producto eliminado
+        // desaparezca de Búsquedas Recientes / navegación de encabezado inmediatamente.
+}
+        /// <summary>
+        /// POST: <c>/Product/Delete</c>. Admin only. Removes the <c>Products</c> row - the database cascades the delete to every
+        /// child table automatically, so EF only removes the one row. Also calls <see cref="SessionHelper.ForgetProduct"/> so the deleted
+        /// product disappears from Recent Searches/header nav immediately.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(decimal upc)
@@ -390,13 +446,18 @@ namespace PIV11.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        /* ---------------- Helpers ---------------- */
+            // Ayudantes
 
-        // Applies every change directly if bypassPending is true (a
-        // brand-new row being filled in for the first time) OR the current
-        // user is admin; otherwise queues each change as a pending
-        // EditHistory record instead of touching the live data. Returns
-        // how many changes were queued as pending.
+            // Aplica cada cambio directamente si bypassPending es true (una fila recién creada que se está completando por
+            // primera vez) O el usuario actual es admin; de lo contrario, pone en cola cada cambio como un registro
+            // pendiente de EditHistory en lugar de tocar los datos en vivo. Devuelve cuántos cambios se pusieron en cola como pendientes.
+
+        /// <summary>
+        /// For each detected <paramref name="changes"/>: applies it directly if <paramref name="bypassPending"/> is <c>true</c> (a brand-new
+        /// row being filled in for the first time) or the current user is admin; otherwise queues it as a pending <see cref="EditHistoryRecord"/>
+        /// instead of touching the live data.
+        /// </summary>
+        /// <returns>How many changes were queued as pending (0 if everything applied directly).</returns>
         private int ApplyOrQueue(NorteMartContext db, List<FieldChangeInfo> changes,
             Product product, Foodstuff foodstuff, IngredientsAllergen ia, NutritionData nd, HealthAlert ha,
             bool bypassPending, string username)
@@ -425,14 +486,17 @@ namespace PIV11.Controllers
             return pendingCount;
         }
 
-        // Small helper so ApproveEdit's null-coalescing "load or create"
-        // pattern reads cleanly for each of the four child entities.
+        /// <summary>Adds <paramref name="entity"/> to the context and returns it - lets a <c>?? AddNew(...)</c> "load or create" one-liner read cleanly.</summary>
         private T AddNew<T>(NorteMartContext db, T entity) where T : class
         {
             db.Set<T>().Add(entity);
             return entity;
         }
 
+        /// <summary>
+        /// Builds the My People danger/caution/safe status for every person the current account owns, grouped by <c>GroupName</c>, 
+        /// against one product's Contains/May-Contain allergen lists.
+        /// </summary>
         private List<PeopleGroupStatus> BuildMyPeopleGroups(NorteMartContext db, List<string> contains, List<string> mayContain)
         {
             var result = new List<PeopleGroupStatus>();
