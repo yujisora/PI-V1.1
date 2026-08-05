@@ -246,9 +246,8 @@ namespace PIV11.Infrastructure
         /// <summary>Parses a nullable int, returning <c>null</c> for blank/unparsable text instead of throwing.</summary>
         private static int? ParseIntOrNull(string text)
         {
-            int result;
             if (string.IsNullOrWhiteSpace(text)) return null;
-            return int.TryParse(text.Trim(), out result) ? (int?)result : null;
+            return int.TryParse(text.Trim(), out int result) ? (int?)result : null;
         }
 
         /// <summary>Reads the raw submitted string for one nutrition column off the Edit form model.</summary>

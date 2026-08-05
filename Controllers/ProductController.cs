@@ -50,14 +50,13 @@ namespace PIV11.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
-                List<string> contains, mayContain;
-                AllergenHelper.SplitContainsAndMayContain(product.IngredientsAllergens, out contains, out mayContain);
+                AllergenHelper.SplitContainsAndMayContain(product.IngredientsAllergens, out List<string> contains, out List<string> mayContain);
 
                 // Keep Session's "current product" / Recent Searches in sync even when this product was reached without going through
                 // Home's search (nav pill, Recent Searches list, My People, etc).
 
-                    // Mantiene el "producto actual" de Session / Búsquedas Recientes sincronizados incluso cuando se llegó a
-                    // este producto sin pasar por la búsqueda de Inicio (píldora de navegación, lista de Búsquedas Recientes, Mi Gente, etc).
+                // Mantiene el "producto actual" de Session / Búsquedas Recientes sincronizados incluso cuando se llegó a
+                // este producto sin pasar por la búsqueda de Inicio (píldora de navegación, lista de Búsquedas Recientes, Mi Gente, etc).
                 SessionHelper.RecordProductView(product, contains.Count > 0 || mayContain.Count > 0);
 
                 var vm = new ProductInfoViewModel
@@ -79,19 +78,19 @@ namespace PIV11.Controllers
                     // Datos nutricionales, en orden de visualización. Grasas Trans se omite por completo cuando es
                     // cero/vacío - nutrimento opcional, que oculta una fila de Grasas Trans en cero solo en modo VISTA (la
                     // pantalla de Edición siempre muestra todos los campos).
-                foreach (var field in ProductEditHelper.NutritionFields)
+                foreach (var (Column, Label, Unit, Indented) in ProductEditHelper.NutritionFields)
                 {
-                    int? value = ProductEditHelper.GetNutritionValue(product.NutritionData, field.Column);
-                    if (field.Column == "TransFats" && (!value.HasValue || value.Value == 0))
+                    int? value = ProductEditHelper.GetNutritionValue(product.NutritionData, Column);
+                    if (Column == "TransFats" && (!value.HasValue || value.Value == 0))
                     {
                         continue;
                     }
                     vm.NutritionFacts.Add(new NutritionFactDisplay
                     {
-                        Label = field.Label,
+                        Label = Label,
                         Value = value,
-                        Unit = field.Unit,
-                        Indented = field.Indented
+                        Unit = Unit,
+                        Indented = Indented
                     });
                 }
 
@@ -147,7 +146,7 @@ namespace PIV11.Controllers
             }
             if (!SessionHelper.CanEditProducts)
             {
-                return RedirectToAction("Info", new { upc = upc });
+                return RedirectToAction("Info", new { upc });
             }
 
             using (var db = new NorteMartContext())
@@ -179,9 +178,9 @@ namespace PIV11.Controllers
                 {
                     model.SetAllergenValue(ak.Key, AllergenHelper.GetTriState(product.IngredientsAllergens, ak.Key));
                 }
-                foreach (var field in ProductEditHelper.NutritionFields)
+                foreach (var (Column, Label, Unit, Indented) in ProductEditHelper.NutritionFields)
                 {
-                    model.SetNutritionValue(field.Column, ProductEditHelper.GetNutritionValue(product.NutritionData, field.Column));
+                    model.SetNutritionValue(Column, ProductEditHelper.GetNutritionValue(product.NutritionData, Column));
                 }
                 foreach (var seal in ProductEditHelper.SealDefinitions)
                 {
@@ -314,7 +313,7 @@ namespace PIV11.Controllers
         {
             if (!SessionHelper.IsAdmin)
             {
-                return RedirectToAction("Info", new { upc = upc });
+                return RedirectToAction("Info", new { upc });
             }
 
             using (var db = new NorteMartContext())
@@ -354,7 +353,7 @@ namespace PIV11.Controllers
         {
             if (!SessionHelper.IsAdmin)
             {
-                return RedirectToAction("Info", new { upc = upc });
+                return RedirectToAction("Info", new { upc });
             }
 
             using (var db = new NorteMartContext())
@@ -384,7 +383,7 @@ namespace PIV11.Controllers
                 }
             }
 
-            return RedirectToAction("History", new { upc = upc });
+            return RedirectToAction("History", new { upc });
         }
 
         /// <summary>
@@ -397,7 +396,7 @@ namespace PIV11.Controllers
         {
             if (!SessionHelper.IsAdmin)
             {
-                return RedirectToAction("Info", new { upc = upc });
+                return RedirectToAction("Info", new { upc });
             }
 
             using (var db = new NorteMartContext())
@@ -410,14 +409,14 @@ namespace PIV11.Controllers
                 }
             }
 
-            return RedirectToAction("History", new { upc = upc });
+            return RedirectToAction("History", new { upc });
         }
 
         // POST: /Product/Delete (solo admin)
         // Elimina la fila de Products; la base de datos hace cascada en la eliminación (On Delete Cascade) de todas las tablas hijas
         // automáticamente, así que EF solo elimina esa fila. También llama a SessionHelper.ForgetProduct para que el producto eliminado
         // desaparezca de Búsquedas Recientes / navegación de encabezado inmediatamente.
-}
+
         /// <summary>
         /// POST: <c>/Product/Delete</c>. Admin only. Removes the <c>Products</c> row - the database cascades the delete to every
         /// child table automatically, so EF only removes the one row. Also calls <see cref="SessionHelper.ForgetProduct"/> so the deleted
@@ -429,7 +428,7 @@ namespace PIV11.Controllers
         {
             if (!SessionHelper.IsAdmin)
             {
-                return RedirectToAction("Info", new { upc = upc });
+                return RedirectToAction("Info", new { upc });
             }
 
             using (var db = new NorteMartContext())

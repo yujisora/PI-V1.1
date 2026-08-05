@@ -1,25 +1,29 @@
+using PIV11.Models;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace PIV11.Infrastructure
 {
-    // AllergenHelper
-    // The database stores allergens as one column per allergen (e.g. HasMilk, HasNuts...) instead of a list. This helper converts back
-    // and forth between that column layout and the simple list-of-names the views use.
+    /* AllergenHelper
+    The database stores allergens as one column per allergen (e.g. HasMilk, HasNuts...) instead of a list. This helper converts back
+    and forth between that column layout and the simple list-of-names the views use.
     
-        // AllergenHelper
-        // La base de datos almacena los alérgenos como una columna por  alérgeno (por ejemplo, HasMilk, HasNuts...) en lugar de una
-        // lista. Este ayudante convierte entre ese diseño de columnas y la simple lista de nombres que usan las vistas.
+    Tri-state convention used by IngredientsAllergens.HasX columns:
+       NULL or "0"  -> does not contain
+       "1"          -> contains
+       "M"          -> may contain
+    */
 
-    //Tri-state convention used by IngredientsAllergens.HasX columns:
-    //    NULL or "0"  -> does not contain
-    //    "1"          -> contains
-    //    "M"          -> may contain
-        // Convención de tres estados usada por las columnas HasX de
-        // IngredientsAllergens:
-        //     NULL o "0"  -> no contiene
-        //     "1"         -> contiene
-        //     "M"         -> puede contener
-*/
+    /* AllergenHelper
+    La base de datos almacena los alérgenos como una columna por  alérgeno (por ejemplo, HasMilk, HasNuts...) en lugar de una
+    lista. Este ayudante convierte entre ese diseño de columnas y la simple lista de nombres que usan las vistas.
+    
+    Convención de tres estados usada por las columnas HasX de IngredientsAllergens:
+        NULL o "0"  -> no contiene
+        "1"         -> contiene
+        "M"         -> puede contener
+    */
+
     /// <summary>
     /// Converts between the database's one-column-per-allergen layout
     /// (<c>IngredientsAllergens.HasX</c> / <c>People.AllergicToX</c>) and the

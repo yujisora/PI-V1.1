@@ -5,21 +5,19 @@ using PIV11.Models;
 
 namespace PIV11.Controllers
 {
-    /* =====================================================================
-       AccountController
-       Login/Logout, public shopper self-registration, and admin-only
-       employee account creation. Real accounts now - any number of
-       employee or shopper accounts can exist, each with its own
-       username/password/display name/optional member ID, all
-       distinguished by the Role column (see Models/User.cs).
-
-       Admin accounts are NOT creatable through any UI here - only the
-       one seeded admin account exists, by design (keeps the highest
-       privilege level from being self-service).
-       ===================================================================== */
+    /// <summary>
+    /// Login/Logout, public shopper self-registration
+    /// (<see cref="Register()"/>/<see cref="Register(string, string, string, string, string)"/>),
+    /// admin-only employee creation
+    /// (<see cref="CreateEmployee()"/>/<see cref="CreateEmployee(string, string, string, string, string)"/>),
+    /// and admin-only account management
+    /// (<see cref="ManageAccounts"/>, <see cref="DeleteAccount"/>). Admin
+    /// accounts are never creatable or deletable through any action here -
+    /// only the one seeded admin account can ever exist.
+    /// </summary>
     public class AccountController : Controller
     {
-        // GET: /Account/Login
+        /// <summary>GET: <c>/Account/Login</c>. Redirects to Home if already logged in; otherwise shows the login form.</summary>
         public ActionResult Login()
         {
             if (SessionHelper.IsLoggedIn)
@@ -29,9 +27,13 @@ namespace PIV11.Controllers
             return View();
         }
 
-        // POST: /Account/Login
-        // Any username can now be tried (no more hardcoded literal list) -
-        // the account either exists in the Users table or it doesn't.
+        /// <summary>
+        /// POST: <c>/Account/Login</c>. Looks up <paramref name="username"/>
+        /// directly against the <c>Users</c> table (no fixed literal list
+        /// anymore) and checks the password. On success, logs in via
+        /// <see cref="SessionHelper.LogIn"/> using the account's real
+        /// role/display name/member ID.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Login(string username, string password)
@@ -48,11 +50,6 @@ namespace PIV11.Controllers
             {
                 var account = db.Users.FirstOrDefault(u => u.UserID == normalizedUsername);
 
-                // Deliberately the same generic message whether the
-                // username doesn't exist or the password is wrong - now
-                // that accounts are self-registerable, revealing which
-                // one was incorrect would let someone enumerate valid
-                // usernames.
                 if (account == null || account.Pass != password)
                 {
                     ModelState.AddModelError("", "Incorrect username or password. Try again.");
@@ -65,16 +62,16 @@ namespace PIV11.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: /Account/Logout
+        /// <summary>GET: <c>/Account/Logout</c>. Clears the session and redirects to Home. Safe to call whether or not a session is active.</summary>
         public ActionResult Logout()
         {
             SessionHelper.LogOut();
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: /Account/Register (public - anyone, logged in or not... but
-        // redirect away if already logged in, same as Login)
-        // Public self-service signup - always creates a "shopper" account.
+        // GET: /Account/Register
+        /// <summary>GET: <c>/Account/Register</c>. Public self-service signup form - always results in a <c>"shopper"</c> account. 
+        /// Redirects to Home if already logged in.</summary>
         public ActionResult Register()
         {
             if (SessionHelper.IsLoggedIn)
@@ -84,7 +81,12 @@ namespace PIV11.Controllers
             return View();
         }
 
-        // POST: /Account/Register
+        /// <summary>
+        /// POST: <c>/Account/Register</c>. Validates via
+        /// <see cref="ValidateNewAccountFields"/>, checks the username isn't
+        /// taken, creates a new <c>Role = "shopper"</c> account, and logs it
+        /// in immediately - no separate "now sign in" step.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Register(string username, string password, string confirmPassword, string displayName, string memberId)
@@ -123,7 +125,7 @@ namespace PIV11.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: /Account/CreateEmployee (admin only)
+        /// <summary>GET: <c>/Account/CreateEmployee</c>. Admin only - redirects to Home for anyone else (covers both "not logged in" and "wrong role").</summary>
         public ActionResult CreateEmployee()
         {
             if (!SessionHelper.IsAdmin)
@@ -135,7 +137,13 @@ namespace PIV11.Controllers
             return View();
         }
 
-        // POST: /Account/CreateEmployee (admin only)
+        /// <summary>
+        /// POST: <c>/Account/CreateEmployee</c>. Admin only. Same validation
+        /// pattern as <see cref="Register(string, string, string, string, string)"/>
+        /// but creates a <c>Role = "employee"</c> account and does
+        /// <b>not</b> log the new account in - the admin stays logged in as
+        /// themselves and sees a confirmation on the Dashboard instead.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateEmployee(string username, string password, string confirmPassword, string displayName, string memberId)
@@ -180,7 +188,7 @@ namespace PIV11.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // GET: /Account/ManageAccounts (admin only)
+        /// <summary>GET: <c>/Account/ManageAccounts</c>. Admin only. Lists every account, ordered by role then username.</summary>
         public ActionResult ManageAccounts()
         {
             if (!SessionHelper.IsAdmin)
@@ -197,11 +205,17 @@ namespace PIV11.Controllers
             }
         }
 
-        // POST: /Account/DeleteAccount (admin only)
-        // Admin accounts can never be deleted through this - there's no
-        // UI to create additional ones, so deleting the only admin would
-        // permanently lock everyone out of admin features with no way
-        // back short of editing the database directly.
+        // POST: /Account/DeleteAccount (admin only
+        /// <summary>
+        /// POST: <c>/Account/DeleteAccount</c>. Admin only. Deletes any
+        /// account except one with <c>Role == "admin"</c> - that case is
+        /// hard-blocked (checked here, not just hidden in the UI), since
+        /// there's no way to create a second admin and losing the only one
+        /// would lock the app's admin features out permanently. Cascades to
+        /// that account's own My People data at the database level;
+        /// <c>EditHistory</c> rows are untouched since <c>EditedByUser</c> is a
+        /// plain string, not a foreign key.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteAccount(string userId)
@@ -227,11 +241,12 @@ namespace PIV11.Controllers
                     return RedirectToAction("ManageAccounts");
                 }
 
-                // Cascades to that account's own My People data at the
-                // database level (see 06_Add_People_Delete_Cascade.sql).
-                // EditHistory rows are untouched - EditedByUser is a plain
-                // string, not a foreign key, so the historical record of
+                // Cascades to that account's own My People data at the database level.
+                // EditHistory rows are untouched - EditedByUser is a plain string, not a foreign key, so the historical record of
                 // what this account did stays intact even after deletion.
+                    // Hace cascada en la información de Mi Gente de esa cuenta a nivel de base de datos. Las filas de EditHistory quedan
+                    // intactas - EditedByUser es una simple cadena de texto, no una llave foránea, así que el registro histórico de lo
+                    // que hizo esta cuenta permanece intacto incluso después de la eliminación.
                 db.Users.Remove(account);
                 db.SaveChanges();
                 TempData["AccountDeleteMessage"] = "Account '" + normalized + "' deleted.";
@@ -240,10 +255,14 @@ namespace PIV11.Controllers
             return RedirectToAction("ManageAccounts");
         }
 
-        /* ---------------- Helpers ---------------- */
-
-        // Shared validation for both Register and CreateEmployee - returns
-        // null when everything's fine, or an error message to show.
+        /* Helpers - Ayudantes */
+        /// <summary>
+        /// Shared field validation for <see cref="Register(string, string, string, string, string)"/>
+        /// and <see cref="CreateEmployee(string, string, string, string, string)"/>:
+        /// blank username, then blank password, then password/confirm
+        /// mismatch, checked in that order.
+        /// </summary>
+        /// <returns><c>null</c> if everything's valid; otherwise the first applicable error message.</returns>
         private string ValidateNewAccountFields(string username, string password, string confirmPassword)
         {
             if (string.IsNullOrWhiteSpace(username))
@@ -261,4 +280,4 @@ namespace PIV11.Controllers
             return null;
         }
     }
-}       
+}

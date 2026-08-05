@@ -129,17 +129,14 @@ namespace PIV11.Controllers
 
             using (var db = new NorteMartContext())
             {
-                // A query made up entirely of digits is treated as a
-                // barcode attempt and validated strictly. Anything else is
+
+                // A query made up entirely of digits is treated as a barcode attempt and validated strictly. Anything else is
                 // treated as a name/brand search instead.
-                // Una consulta compuesta enteramente de dígitos se
-                // trata como un intento de código de barras y se
-                // valida estrictamente. Cualquier otra cosa se trata
-                // como una búsqueda por nombre/marca.
+                    // Una consulta compuesta enteramente de dígitos se trata como un intento de código de barras y se
+                    // valida estrictamente. Cualquier otra cosa se trata como una búsqueda por nombre/marca.
                 if (Regex.IsMatch(trimmed, @"^\d+$"))
                 {
-                    string barcodeError;
-                    decimal? normalized = ValidateBarcode(trimmed, out barcodeError);
+                    decimal? normalized = ValidateBarcode(trimmed, out string barcodeError);
                     if (normalized == null)
                     {
                         model.ErrorMessage = barcodeError;
@@ -187,17 +184,6 @@ namespace PIV11.Controllers
             }
         }
 
-        // Renders whatever the search didn't resolve directly (an error,
-        // a "not found" message, or a multi-match pick-list). Admin sees
-        // it inside the Dashboard shell (their "Home" screen is the
-        // dashboard, not the consumer search page); everyone else sees
-        // the normal Index search page.
-        // Renderiza lo que la búsqueda no resolvió directamente (un
-        // error, un mensaje de "no encontrado", o una lista para
-        // elegir con varias coincidencias). Admin lo ve dentro del
-        // marco del Panel (su pantalla de "Inicio" es el panel, no
-        // la página de búsqueda del consumidor); todos los demás ven
-        // la página de búsqueda Index normal.
         /// <summary>
         /// Renders whatever <see cref="Search"/> didn't resolve directly to a
         /// single product. Admin sees it embedded in the full Dashboard
@@ -225,21 +211,6 @@ namespace PIV11.Controllers
         }
 
         // GET: /Home/Recent?all=true
-        // Normally lists the session's Recent Searches. Falls back to
-        // showing every registered product automatically when there's
-        // nothing recent yet (a fresh session otherwise has nothing to
-        // show at all) - and that same "all products" list can also be
-        // requested explicitly via ?all=true even when recent searches
-        // does have entries, as a simple way to browse everything.
-        // GET: /Home/Recent?all=true
-        // Normalmente lista las Búsquedas Recientes de la sesión.
-        // Recae en mostrar todos los productos registrados
-        // automáticamente cuando aún no hay nada reciente (una
-        // sesión nueva de lo contrario no tendría nada que mostrar)
-        // - y esa misma lista de "todos los productos" también se
-        // puede solicitar explícitamente mediante ?all=true incluso
-        // cuando las búsquedas recientes sí tienen entradas, como
-        // una forma simple de explorar todo.
         /// <summary>
         /// GET: <c>/Home/Recent?all=true</c>. Lists the session's Recent
         /// Searches, or every registered product when <paramref name="all"/>
@@ -297,26 +268,13 @@ namespace PIV11.Controllers
         }
 
         // POST: /Home/AddProduct
-        // Validates and inserts a brand-new product (Products +
-        // Foodstuffs rows). Nutrition facts, allergens, and warning seals
-        // are left for the Edit screen (a later phase) to fill in -
-        // matching the mockup, where a freshly-added product starts with
-        // default/empty nutrition data too.
-        // POST: /Home/AddProduct
-        // Valida e inserta un producto completamente nuevo (filas de
-        // Products + Foodstuffs). Los datos nutricionales, alérgenos
-        // y sellos de advertencia se dejan para que la pantalla de
-        // Edición (una fase posterior) los complete - coincide con
-        // el mockup, donde un producto recién agregado también
-        // comienza con datos nutricionales predeterminados/vacíos.
-        /// <summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         /// POST: <c>/Home/AddProduct</c>. Validates and inserts a brand-new
         /// <c>Products</c> + <c>Foodstuffs</c> row. Nutrition facts, allergens,
         /// and warning seals are deliberately left for a later Edit to fill
         /// in. Redirects straight to the new product's Info page on success.
         /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public ActionResult AddProduct(AddProductViewModel model)
         {
             if (!SessionHelper.IsLoggedIn)
@@ -331,8 +289,7 @@ namespace PIV11.Controllers
             ViewBag.ActiveScreen = "Recent";
             ViewBag.Title = "Add Product";
 
-            string barcodeError;
-            decimal? normalized = ValidateBarcode((model.UPC ?? string.Empty).Trim(), out barcodeError);
+            decimal? normalized = ValidateBarcode((model.UPC ?? string.Empty).Trim(), out string barcodeError);
             if (normalized == null)
             {
                 ModelState.AddModelError("", barcodeError);
@@ -378,18 +335,6 @@ namespace PIV11.Controllers
             }
         }
 
-        // GET: /Home/Activity?status=pending|approved|denied (or omitted for all)
-        // Admin only. The dashboard's stat cards link here - unlike the
-        // Dashboard's "Recent Activity" section (capped at 10, mixed
-        // statuses), this shows every matching EditHistory record with no
-        // cap, filtered to one status at a time.
-        // GET: /Home/Activity?status=pending|approved|denied (u
-        // omitido para todos)
-        // Solo admin. Las tarjetas de estadísticas del panel
-        // enlazan aquí - a diferencia de la sección "Actividad
-        // Reciente" del Panel (limitada a 10, estados mezclados),
-        // esta muestra cada registro de EditHistory que coincida
-        // sin límite, filtrado a un estado a la vez.
         /// <summary>
         /// GET: <c>/Home/Activity?status=pending|approved|denied</c>. Admin
         /// only. Every matching <see cref="EditHistoryRecord"/> across every
@@ -440,18 +385,12 @@ namespace PIV11.Controllers
             }
         }
 
-        /* ---------------- Helpers ---------------- */
-        // ---------------- Ayudantes ----------------
+        /// <summary>
+        /// Helpers are private methods that support the main action methods, such as validating barcodes, checking for allergens, 
+        /// and mapping products to view models.
+        /// </summary>
+        /* Helpers - Ayudantes */
 
-        // Ports the mockup's validateUPC() logic exactly: accepts a
-        // 12-digit UPC-A or 13-digit EAN-13, normalizes to 13 digits, and
-        // checks the EAN-13 check digit. Returns null + an error message
-        // on any failure.
-        // Traslada exactamente la lógica validateUPC() del mockup:
-        // acepta un UPC-A de 12 dígitos o un EAN-13 de 13 dígitos,
-        // normaliza a 13 dígitos, y verifica el dígito de control de
-        // EAN-13. Devuelve null + un mensaje de error ante cualquier
-        // fallo.
         /// <summary>
         /// Validates a barcode string: must be 12 or 13 digits, normalized to
         /// 13 (left-padding a 12-digit UPC-A with a zero), with a real EAN-13
@@ -485,19 +424,10 @@ namespace PIV11.Controllers
             return decimal.Parse(normalized);
         }
 
-        // True if the product has ANY allergen flagged (contains OR may
-        // contain) - used to show the amber warning badge in search
-        // results / recent searches, without needing the full lists.
-        // Verdadero si el producto tiene ALGÚN alérgeno marcado
-        // (contiene O puede contener) - se usa para mostrar la
-        // insignia de advertencia ámbar en resultados de
-        // búsqueda/búsquedas recientes, sin necesitar las listas
-        // completas.
         /// <summary>True if the product has any allergen flagged (Contains OR May-Contain) - drives the amber warning badge without needing the full lists.</summary>
         private bool HasAnyAllergenInfo(Product product)
         {
-            List<string> contains, mayContain;
-            AllergenHelper.SplitContainsAndMayContain(product.IngredientsAllergens, out contains, out mayContain);
+            AllergenHelper.SplitContainsAndMayContain(product.IngredientsAllergens, out List<string> contains, out List<string> mayContain);
             return contains.Count > 0 || mayContain.Count > 0;
         }
 
@@ -513,13 +443,6 @@ namespace PIV11.Controllers
             };
         }
 
-        // Converts a full Product into the lightweight shape the Recent
-        // Searches view renders - reused when falling back to "show every
-        // registered product" (see Recent() above).
-        // Convierte un Product completo en la forma ligera que
-        // renderiza la vista de Búsquedas Recientes - se reutiliza
-        // al recaer en "mostrar todos los productos registrados"
-        // (ver Recent() arriba).
         /// <summary>
         /// Maps a <see cref="Product"/> to the lightweight
         /// <see cref="RecentSearchItem"/> shape the Recent Searches view
