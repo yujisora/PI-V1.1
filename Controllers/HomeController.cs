@@ -395,8 +395,8 @@ namespace PIV11.Controllers
         }
 
         /// <summary>
-        /// Helpers are private methods that support the main action methods, such as validating barcodes, checking for allergens, 
-        /// and mapping products to view models.
+        /// Helpers are private methods that support the main action methods, such as validating barcodes,
+        /// checking for allergens, and mapping products to view models.
         /// </summary>
         /* Helpers - Ayudantes */
 
