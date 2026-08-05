@@ -233,6 +233,9 @@ namespace PIV11.Controllers
                 return View(recent);
             }
 
+            /// <summary>
+            /// All products, sorted by name, mapped to the lightweight RecentSearchItem shape. 
+            /// This is the fallback when there are no recent searches yet, or when the user explicitly requests "show all."
             using (var db = new NorteMartContext())
             {
                 var allProducts = db.Products
@@ -303,7 +306,13 @@ namespace PIV11.Controllers
             {
                 return View(model);
             }
-
+            /// <summary>  
+            /// The UPC is valid and the product name is provided. 
+            /// Check if a product with the same UPC already exists in the database. 
+            /// If it does, add a model error and return the view with the current model. 
+            /// Otherwise, create a new Product and Foodstuff entry, save changes to the database,
+            /// record the product view in the session, and redirect to the product's Info page.
+            /// </summary>
             using (var db = new NorteMartContext())
             {
                 bool alreadyExists = db.Products.Any(p => p.UPC == normalized.Value);
