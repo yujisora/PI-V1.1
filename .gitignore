@@ -4,3 +4,5 @@ obj/
 packages/
 *.user
 *.suo
+.git
+.git/objects/pack
