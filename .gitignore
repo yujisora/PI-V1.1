@@ -6,3 +6,4 @@ packages/
 *.suo
 .git
 .git/objects/pack
+/PI-V1.1.git
