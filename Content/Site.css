@@ -2561,6 +2561,7 @@ input, select, textarea {
 .user-pill-button {
     border: 1px solid var(--border);
     cursor: pointer;
+    color: inherit;
 }
 
 .user-menu-kebab {
