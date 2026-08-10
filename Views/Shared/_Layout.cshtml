@@ -6,11 +6,11 @@
     //   ViewBag.ShowBack     : true to show the back arrow in the header
     //   ViewBag.ShowSave     : true to show the save icon in the header
     //   ViewBag.SaveFormId   : the id of the <form> the save icon should submit
-        // Banderas que cada vista puede establecer (a través de ViewBag) antes de renderizar este diseño:
-        //  ViewBag.ActiveScreen : "Home" | "Product Info" | "Edit" | "My People" | "Recent"
-        // ViewBag.ShowBack     : true para mostrar la flecha de retroceso en el encabezado
-        // ViewBag.ShowSave     : true para mostrar el icono de guardar en el encabezado
-        // ViewBag.SaveFormId   : el id del <form> que el icono de guardar debe enviar
+    // Banderas que cada vista puede establecer (a través de ViewBag) antes de renderizar este diseño:
+    //  ViewBag.ActiveScreen : "Home" | "Product Info" | "Edit" | "My People" | "Recent"
+    // ViewBag.ShowBack     : true para mostrar la flecha de retroceso en el encabezado
+    // ViewBag.ShowSave     : true para mostrar el icono de guardar en el encabezado
+    // ViewBag.SaveFormId   : el id del <form> que el icono de guardar debe enviar
 
     string activeScreen = ViewBag.ActiveScreen as string ?? "";
     bool showBack = ViewBag.ShowBack ?? false;
@@ -25,12 +25,12 @@
 
     // "Product Info" nav link / back arrow both need to know which product was last viewed - tracked centrally in SessionHelper.
     // Navigating to a product page sets this value; navigating away (to Home, My People, etc.) does not clear it, so the back arrow can still return to the last product viewed.
-        // Nav link "Product info" y el botón de retroceso necesitan saber qué producto se vio por última vez; se rastrea de manera central en SessionHelper.
-        // Navegar a una página de producto establece este valor; navegar a otra página (Inicio, My People, etc.) no lo borra, por lo que el botón de retroceso aún puede regresar al último producto visto.
+    // Nav link "Product info" y el botón de retroceso necesitan saber qué producto se vio por última vez; se rastrea de manera central en SessionHelper.
+    // Navegar a una página de producto establece este valor; navegar a otra página (Inicio, My People, etc.) no lo borra, por lo que el botón de retroceso aún puede regresar al último producto visto.
     decimal? currentUpcObj = SessionHelper.CurrentProductUPC;
 
     // UPC is a decimal, but we don't want to show the decimal point in the URL. So we convert it to a string without any decimal places.
-        // UPC es un decimal, pero no queremos mostrar el punto decimal en la URL. Por lo tanto, lo convertimos a una cadena sin decimales.
+    // UPC es un decimal, pero no queremos mostrar el punto decimal en la URL. Por lo tanto, lo convertimos a una cadena sin decimales.
     bool hasCurrentProduct = currentUpcObj.HasValue;
 
     // Header background tint: violet for admin, emerald for employee, blue for shopper, slate for guest.
@@ -169,6 +169,11 @@
                     </div>
                     <a href="@Url.Action("Logout", "Account")" class="icon-btn" aria-label="Log out">&#8594;|</a>
                 }
+                else
+                {
+                <a href="@Url.Action("Login", "Account")" class="btn-primary btn-pill">Login</a>
+                }
+                @* Mobile menu toggle - the menu itself reuses the same links as the desktop nav pills *@
                 @* Mobile menu toggle - the menu itself reuses the same links as the desktop nav pills *@
                 <div class="mobile-menu-wrapper">
                     <button type="button" id="mobileMenuToggle" class="icon-btn mobile-only" aria-label="Open navigation menu" aria-expanded="false">&#8942;</button>
@@ -185,8 +190,8 @@
                         @if (isLoggedIn)
                         {
                             <a href="@Url.Action("ChangeDisplayName", "Account")" class="mobile-menu-item">Change Name</a>
+                            <a href="@Url.Action("ChangePassword", "Account")" class="mobile-menu-item">Change Password</a>
                         }
-                        <a href="@Url.Action("ChangeDisplayName", "Account")" class="mobile-menu-item">Change Name</a>
                     </div>
                 </div>
             </div>
