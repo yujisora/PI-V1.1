@@ -12,6 +12,7 @@ namespace PIV11.Models.ViewModels
         public int? Value { get; set; }
         public string Unit { get; set; }
         public bool Indented { get; set; }
+        public int? ContainerValue { get; set; }
     }
 
     /* =====================================================================
@@ -65,6 +66,8 @@ namespace PIV11.Models.ViewModels
         public string UnitMeasurement { get; set; }
         public string ImageUrl { get; set; }
         public string Ingredients { get; set; }
+        public bool HasContainerToggle { get; set; }
+        public string ContainerAmountLabel { get; set; }
 
         public List<string> AllergensContains { get; set; }
         public List<string> AllergensMayContain { get; set; }
