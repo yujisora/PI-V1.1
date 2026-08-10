@@ -10,9 +10,10 @@ namespace PIV11.Controllers
     /// (<see cref="Register()"/>/<see cref="Register(string, string, string, string, string)"/>),
     /// admin-only employee creation
     /// (<see cref="CreateEmployee()"/>/<see cref="CreateEmployee(string, string, string, string, string)"/>),
-    /// and admin-only account management
-    /// (<see cref="ManageAccounts"/>, <see cref="DeleteAccount"/>). Admin
-    /// accounts are never creatable or deletable through any action here -
+    /// admin-only account management
+    /// (<see cref="ManageAccounts"/>, <see cref="DeleteAccount"/>), a public
+    /// Privacy Policy page, and change-password for any logged-in role.
+    /// Admin accounts are never creatable or deletable through any action here -
     /// only the one seeded admin account can ever exist.
     /// </summary>
     public class AccountController : Controller
@@ -244,15 +245,89 @@ namespace PIV11.Controllers
                 // Cascades to that account's own My People data at the database level.
                 // EditHistory rows are untouched - EditedByUser is a plain string, not a foreign key, so the historical record of
                 // what this account did stays intact even after deletion.
-                    // Hace cascada en la información de Mi Gente de esa cuenta a nivel de base de datos. Las filas de EditHistory quedan
-                    // intactas - EditedByUser es una simple cadena de texto, no una llave foránea, así que el registro histórico de lo
-                    // que hizo esta cuenta permanece intacto incluso después de la eliminación.
+                // Hace cascada en la información de Mi Gente de esa cuenta a nivel de base de datos. Las filas de EditHistory quedan
+                // intactas - EditedByUser es una simple cadena de texto, no una llave foránea, así que el registro histórico de lo
+                // que hizo esta cuenta permanece intacto incluso después de la eliminación.
                 db.Users.Remove(account);
                 db.SaveChanges();
                 TempData["AccountDeleteMessage"] = "Account '" + normalized + "' deleted.";
             }
 
             return RedirectToAction("ManageAccounts");
+        }
+
+        /// <summary>GET: <c>/Account/PrivacyPolicy</c>. Public - no login required.</summary>
+        public ActionResult PrivacyPolicy()
+        {
+            return View();
+        }
+
+        /// <summary>GET: <c>/Account/ChangePassword</c>. Any logged-in role. Redirects to Login if no session is active.</summary>
+        public ActionResult ChangePassword()
+        {
+            if (!SessionHelper.IsLoggedIn)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            return View();
+        }
+
+        /// <summary>
+        /// POST: <c>/Account/ChangePassword</c>. Requires the correct current
+        /// password before accepting a new one. Scoped to the logged-in
+        /// account only (<see cref="SessionHelper.CurrentUsername"/>) -
+        /// works identically for every role, since it just updates that
+        /// account's own <c>Users</c> row.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ChangePassword(string currentPassword, string newPassword, string confirmNewPassword)
+        {
+            if (!SessionHelper.IsLoggedIn)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+            {
+                ModelState.AddModelError("", "Enter your current password.");
+                return View();
+            }
+            if (string.IsNullOrWhiteSpace(newPassword))
+            {
+                ModelState.AddModelError("", "Choose a new password.");
+                return View();
+            }
+            if (newPassword != confirmNewPassword)
+            {
+                ModelState.AddModelError("", "New passwords do not match.");
+                return View();
+            }
+
+            using (var db = new NorteMartContext())
+            {
+                var account = db.Users.FirstOrDefault(u => u.UserID == SessionHelper.CurrentUsername);
+                if (account == null)
+                {
+                    // Session refers to an account that no longer exists
+                    // (e.g. deleted by an admin while still logged in
+                    // elsewhere) - safest is to log out rather than guess.
+                    SessionHelper.LogOut();
+                    return RedirectToAction("Login", "Account");
+                }
+
+                if (account.Pass != currentPassword)
+                {
+                    ModelState.AddModelError("", "Current password is incorrect.");
+                    return View();
+                }
+
+                account.Pass = newPassword;
+                db.SaveChanges();
+            }
+
+            TempData["PasswordChangedMessage"] = "Your password has been updated.";
+            return RedirectToAction("Index", "Home");
         }
 
         /* Helpers - Ayudantes */

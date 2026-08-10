@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
 using PIV11.Infrastructure;
@@ -15,10 +16,10 @@ namespace PIV11.Controllers
     // Product Info (view), Edit (form), and Edit History (admin review queue) - everything that revolves around one specific product,
     // identified by its UPC.
 
-        // ProductController
+    // ProductController
 
-        // Información del Producto (vista), Editar (formulario), e Historial de Ediciones (cola de revisión de admin) - todo
-        // lo que gira en torno a un producto específico, identificado por su UPC.
+    // Información del Producto (vista), Editar (formulario), e Historial de Ediciones (cola de revisión de admin) - todo
+    // lo que gira en torno a un producto específico, identificado por su UPC.
 
     /// <summary>
     /// Everything that revolves around one specific product: viewing it (<see cref="Info"/>), editing it (<see cref="Edit(decimal)"/> /
@@ -72,12 +73,32 @@ namespace PIV11.Controllers
                     AllergensMayContain = mayContain
                 };
 
-                // Nutrition facts, in display order. Trans Fat is skipped entirely when it's zero/empty - optional nutrient,
-                // which hides a zero Trans Fat row in VIEW mode only (the Edit screen always shows every field).
+                // Per-100g/ml vs. per-whole-container toggle: only offered when NetVolume actually parses as a real positive number
+                // (e.g. "250") - if it's blank, zero, or non-numeric, the toggle simply isn't shown and the view falls back to
+                // per-100 only, same as before this feature existed.
 
-                    // Datos nutricionales, en orden de visualización. Grasas Trans se omite por completo cuando es
-                    // cero/vacío - nutrimento opcional, que oculta una fila de Grasas Trans en cero solo en modo VISTA (la
-                    // pantalla de Edición siempre muestra todos los campos).
+                // Alternar entre por 100 g/ml y por envase completo: solo se ofrece cuando NetVolume realmente se puede
+                // interpretar como un número positivo real (por ejemplo, "250") - si está vacío, es cero, o no es numérico,
+                // el alternador simplemente no se muestra y la vista recae en solo por-100, igual que antes de esta función.
+                bool hasContainerAmount = double.TryParse(vm.NetVolume, NumberStyles.Any, CultureInfo.InvariantCulture, out double containerMultiplier)
+                    && containerMultiplier > 0;
+                if (hasContainerAmount)
+                {
+                    vm.HasContainerToggle = true;
+                    vm.ContainerAmountLabel = vm.NetVolume + " " + vm.UnitMeasurement;
+                    containerMultiplier = containerMultiplier / 100.0;
+                }
+
+                // Nutrition facts, in display order. Trans Fat is skipped entirely when it's zero/empty - optional nutrient,
+                // which hides a zero Trans Fat row in VIEW mode only (the Edit screen always shows every field). This check is
+                // always against the per-100 value, regardless of which way the toggle is currently set - it's about whether
+                // the fact is meaningful at all, not about scaling.
+
+                // Datos nutricionales, en orden de visualización. Grasas Trans se omite por completo cuando es
+                // cero/vacío - nutrimento opcional, que oculta una fila de Grasas Trans en cero solo en modo VISTA (la
+                // pantalla de Edición siempre muestra todos los campos). Esta verificación siempre es contra el valor
+                // por-100, sin importar cómo esté puesto el alternador actualmente - se trata de si el dato es
+                // significativo, no de la escala.
                 foreach (var (Column, Label, Unit, Indented) in ProductEditHelper.NutritionFields)
                 {
                     int? value = ProductEditHelper.GetNutritionValue(product.NutritionData, Column);
@@ -89,13 +110,16 @@ namespace PIV11.Controllers
                     {
                         Label = Label,
                         Value = value,
+                        ContainerValue = (hasContainerAmount && value.HasValue)
+                            ? (int?)Math.Round(value.Value * containerMultiplier)
+                            : null,
                         Unit = Unit,
                         Indented = Indented
                     });
                 }
 
                 // Only the ACTIVE seals are shown on Product Info (the Edit screen shows all 8 regardless of state).
-                    // Solo se muestran los sellos ACTIVOS en Información del Producto (la pantalla de Edición muestra los 8 sin importar su estado).
+                // Solo se muestran los sellos ACTIVOS en Información del Producto (la pantalla de Edición muestra los 8 sin importar su estado).
                 foreach (var seal in ProductEditHelper.SealDefinitions)
                 {
                     bool isActive = ProductEditHelper.GetSealValue(product.HealthAlert, seal.Key);
@@ -113,14 +137,14 @@ namespace PIV11.Controllers
                 }
 
                 // My People panel - user and shopper roles.
-                    // Panel de Mi Gente - roles user y shopper.
+                // Panel de Mi Gente - roles user y shopper.
                 if (SessionHelper.CanAccessMyPeople)
                 {
                     vm.MyPeopleGroups = BuildMyPeopleGroups(db, contains, mayContain);
                 }
 
                 // Pending-edit badge - admin role only.
-                    // Insignia de edición pendiente - solo rol admin.
+                // Insignia de edición pendiente - solo rol admin.
                 if (SessionHelper.IsAdmin)
                 {
                     vm.PendingEditCount = db.EditHistory.Count(e => e.UPC == upc && e.Status == "pending");
@@ -204,12 +228,12 @@ namespace PIV11.Controllers
         // filling in previously-empty nutrition/allergen/seal data (e.g. right after Add Product) applies immediately for anyone, since
         // there's nothing established yet to protect.
 
-            // POST: /Product/Edit
+        // POST: /Product/Edit
 
-            // Admin: cada cambio se aplica de inmediato.
-            // "user" con sesión iniciada: los cambios a campos que ya tenían un valor van a EditHistory como "pending" en lugar
-            // de tocar los datos en vivo; completar datos de nutrición/alérgeno/sello previamente vacíos (por ejemplo,
-            // justo después de Agregar Producto) se aplica de inmediato para cualquiera, ya que no hay nada establecido todavía que proteger.
+        // Admin: cada cambio se aplica de inmediato.
+        // "user" con sesión iniciada: los cambios a campos que ya tenían un valor van a EditHistory como "pending" en lugar
+        // de tocar los datos en vivo; completar datos de nutrición/alérgeno/sello previamente vacíos (por ejemplo,
+        // justo después de Agregar Producto) se aplica de inmediato para cualquiera, ya que no hay nada establecido todavía que proteger.
 
         /// <summary>
         /// POST: <c>/Product/Edit</c>. Diffs the submitted form against the live data for all four child entities (creating any that don't
@@ -276,9 +300,9 @@ namespace PIV11.Controllers
                 // Product name/brand/image/weight/unit always already have real values (Add Product guarantees Products+Foodstuffs
                 // exist), so these always go through the normal role-based routing - never treated as "brand new".
 
-                    // El nombre/marca/imagen/peso/unidad del producto siempre tienen ya valores reales (Agregar Producto
-                    // garantiza que Products+Foodstuffs existan), así que estos siempre pasan por el enrutamiento normal
-                    // basado en rol - nunca se tratan como "recién creados".
+                // El nombre/marca/imagen/peso/unidad del producto siempre tienen ya valores reales (Agregar Producto
+                // garantiza que Products+Foodstuffs existan), así que estos siempre pasan por el enrutamiento normal
+                // basado en rol - nunca se tratan como "recién creados".
                 pendingCount += ApplyOrQueue(db,
                     ProductEditHelper.ComputeCoreChanges(product, foodstuff, model),
                     product, foodstuff, ia, nd, ha, bypassPending: false, username: username);
@@ -445,11 +469,11 @@ namespace PIV11.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-            // Ayudantes
+        // Ayudantes
 
-            // Aplica cada cambio directamente si bypassPending es true (una fila recién creada que se está completando por
-            // primera vez) O el usuario actual es admin; de lo contrario, pone en cola cada cambio como un registro
-            // pendiente de EditHistory en lugar de tocar los datos en vivo. Devuelve cuántos cambios se pusieron en cola como pendientes.
+        // Aplica cada cambio directamente si bypassPending es true (una fila recién creada que se está completando por
+        // primera vez) O el usuario actual es admin; de lo contrario, pone en cola cada cambio como un registro
+        // pendiente de EditHistory en lugar de tocar los datos en vivo. Devuelve cuántos cambios se pusieron en cola como pendientes.
 
         /// <summary>
         /// For each detected <paramref name="changes"/>: applies it directly if <paramref name="bypassPending"/> is <c>true</c> (a brand-new
