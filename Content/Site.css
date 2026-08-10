@@ -2509,3 +2509,47 @@ input, select, textarea {
         width: calc(100vw - 3rem);
     }
 }
+
+/* extra: for nutrition toggle */
+
+.nutrition-toggle-row {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.nutrition-toggle-btn {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: transparent;
+    color: var(--foreground);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .nutrition-toggle-btn.active {
+        background: var(--primary-solid);
+        border-color: var(--primary-solid);
+        color: #fff;
+    }
+
+.policy-card {
+    max-width: 34rem;
+    text-align: left;
+}
+
+.policy-body h3 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.4rem;
+    font-size: 1rem;
+}
+
+.policy-body p {
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}

@@ -159,6 +159,10 @@
                     <div class="user-pill" aria-label="Logged in as @SessionHelper.CurrentDisplayName, @roleLabel">
                         @SessionHelper.CurrentDisplayName <span class="user-pill-role">| @roleLabel</span>
                     </div>
+                    if (isLoggedIn)
+                    {
+                        <a href="@Url.Action("ChangePassword", "Account")" class="icon-btn" aria-label="Change password">&#9881;</a>
+                    }
                     <a href="@Url.Action("Logout", "Account")" class="icon-btn" aria-label="Log out">&#8594;|</a>
                 }
                 else
