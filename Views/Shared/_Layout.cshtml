@@ -156,20 +156,19 @@
 
                 @if (isLoggedIn)
                 {
-                    <div class="user-pill" aria-label="Logged in as @SessionHelper.CurrentDisplayName, @roleLabel">
-                        @SessionHelper.CurrentDisplayName <span class="user-pill-role">| @roleLabel</span>
+                    <div class="user-menu-wrapper">
+                        <button type="button" id="userMenuToggle" class="user-pill user-pill-button"
+                                aria-haspopup="true" aria-expanded="false" aria-controls="userMenu">
+                            @SessionHelper.CurrentDisplayName <span class="user-pill-role">| @roleLabel</span>
+                            <span class="user-menu-kebab" aria-hidden="true">&#8942;</span>
+                        </button>
+                        <div id="userMenu" class="user-menu" hidden role="menu">
+                            <a href="@Url.Action("ChangeDisplayName", "Account")" class="user-menu-item" role="menuitem">Change Name</a>
+                            <a href="@Url.Action("ChangePassword", "Account")" class="user-menu-item" role="menuitem">Change Password</a>
+                        </div>
                     </div>
-                    if (isLoggedIn)
-                    {
-                        <a href="@Url.Action("ChangePassword", "Account")" class="icon-btn" aria-label="Change password">&#9881;</a>
-                    }
                     <a href="@Url.Action("Logout", "Account")" class="icon-btn" aria-label="Log out">&#8594;|</a>
                 }
-                else
-                {
-                    <a href="@Url.Action("Login", "Account")" class="btn-primary btn-pill">Login</a>
-                }
-
                 @* Mobile menu toggle - the menu itself reuses the same links as the desktop nav pills *@
                 <div class="mobile-menu-wrapper">
                     <button type="button" id="mobileMenuToggle" class="icon-btn mobile-only" aria-label="Open navigation menu" aria-expanded="false">&#8942;</button>
@@ -183,6 +182,11 @@
                         {
                             <a href="@Url.Action("Index", "People")" class="mobile-menu-item">My People</a>
                         }
+                        @if (isLoggedIn)
+                        {
+                            <a href="@Url.Action("ChangeDisplayName", "Account")" class="mobile-menu-item">Change Name</a>
+                        }
+                        <a href="@Url.Action("ChangeDisplayName", "Account")" class="mobile-menu-item">Change Name</a>
                     </div>
                 </div>
             </div>

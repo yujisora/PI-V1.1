@@ -2553,3 +2553,44 @@ input, select, textarea {
     font-size: 0.9rem;
     line-height: 1.6;
 }
+
+.user-menu-wrapper {
+    position: relative;
+}
+
+.user-pill-button {
+    border: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.user-menu-kebab {
+    margin-left: 0.3rem;
+    color: var(--muted-foreground);
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.user-menu {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    min-width: 11rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    overflow: hidden;
+    z-index: 30;
+}
+
+.user-menu-item {
+    display: block;
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+    .user-menu-item:hover {
+        background: var(--muted);
+    }

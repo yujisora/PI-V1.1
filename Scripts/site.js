@@ -409,3 +409,23 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+(function () {
+    var toggle = document.getElementById('userMenuToggle');
+    var menu = document.getElementById('userMenu');
+    if (!toggle || !menu) return;
+
+    toggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isOpen = !menu.hidden;
+        menu.hidden = isOpen;
+        toggle.setAttribute('aria-expanded', (!isOpen).toString());
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!menu.hidden && !menu.contains(e.target) && e.target !== toggle) {
+            menu.hidden = true;
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+    });
+})();

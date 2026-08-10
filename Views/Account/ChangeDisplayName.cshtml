@@ -1,4 +1,4 @@
-using System.Linq;
+Ôªøusing System.Linq;
 using System.Web.Mvc;
 using PIV11.Infrastructure;
 using PIV11.Models;
@@ -7,16 +7,17 @@ namespace PIV11.Controllers
 {
     /// <summary>
     /// Login/Logout, public shopper self-registration
-    /// (<see cref="Register()"/>/<see cref="Register(string, string, string, string, string)"/>),
+    /// (<see cref="Register()" />/<see cref="Register(string, string, string, string, string)" />),
     /// admin-only employee creation
-    /// (<see cref="CreateEmployee()"/>/<see cref="CreateEmployee(string, string, string, string, string)"/>),
+    /// (<see cref="CreateEmployee()" />/<see cref="CreateEmployee(string, string, string, string, string)" />),
     /// admin-only account management
-    /// (<see cref="ManageAccounts"/>, <see cref="DeleteAccount"/>), a public
+    /// (<see cref="ManageAccounts" />, <see cref="DeleteAccount" />), a public
     /// Privacy Policy page, and change-name/change-password for any
     /// logged-in role. Admin accounts are never creatable or deletable
     /// through any action here - only the one seeded admin account can
     /// ever exist.
-    /// </summary>
+    ///
+</summary>
     public class AccountController : Controller
     {
         /// <summary>GET: <c>/Account/Login</c>. Redirects to Home if already logged in; otherwise shows the login form.</summary>
@@ -30,12 +31,13 @@ namespace PIV11.Controllers
         }
 
         /// <summary>
-        /// POST: <c>/Account/Login</c>. Looks up <paramref name="username"/>
-        /// directly against the <c>Users</c> table (no fixed literal list
-        /// anymore) and checks the password. On success, logs in via
-        /// <see cref="SessionHelper.LogIn"/> using the account's real
-        /// role/display name/member ID.
-        /// </summary>
+    /// POST: <c>/Account/Login</c>. Looks up <paramref name="username" />
+    /// directly against the <c>Users</c> table (no fixed literal list
+    /// anymore) and checks the password. On success, logs in via
+    /// <see cref="SessionHelper.LogIn" /> using the account's real
+    /// role/display name/member ID.
+    ///
+</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Login(string username, string password)
@@ -72,8 +74,10 @@ namespace PIV11.Controllers
         }
 
         // GET: /Account/Register
-        /// <summary>GET: <c>/Account/Register</c>. Public self-service signup form - always results in a <c>"shopper"</c> account. 
-        /// Redirects to Home if already logged in.</summary>
+        /// <summary>
+    GET: <c>/Account/Register</c>. Public self-service signup form - always results in a <c>"shopper"</c> account.
+    /// Redirects to Home if already logged in.
+</summary>
         public ActionResult Register()
         {
             if (SessionHelper.IsLoggedIn)
@@ -84,11 +88,12 @@ namespace PIV11.Controllers
         }
 
         /// <summary>
-        /// POST: <c>/Account/Register</c>. Validates via
-        /// <see cref="ValidateNewAccountFields"/>, checks the username isn't
-        /// taken, creates a new <c>Role = "shopper"</c> account, and logs it
-        /// in immediately - no separate "now sign in" step.
-        /// </summary>
+    /// POST: <c>/Account/Register</c>. Validates via
+    /// <see cref="ValidateNewAccountFields" />, checks the username isn't
+    /// taken, creates a new <c>Role = "shopper"</c> account, and logs it
+    /// in immediately - no separate "now sign in" step.
+    ///
+</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Register(string username, string password, string confirmPassword, string displayName, string memberId)
@@ -140,12 +145,13 @@ namespace PIV11.Controllers
         }
 
         /// <summary>
-        /// POST: <c>/Account/CreateEmployee</c>. Admin only. Same validation
-        /// pattern as <see cref="Register(string, string, string, string, string)"/>
-        /// but creates a <c>Role = "employee"</c> account and does
-        /// <b>not</b> log the new account in - the admin stays logged in as
-        /// themselves and sees a confirmation on the Dashboard instead.
-        /// </summary>
+    /// POST: <c>/Account/CreateEmployee</c>. Admin only. Same validation
+    /// pattern as <see cref="Register(string, string, string, string, string)" />
+    /// but creates a <c>Role = "employee"</c> account and does
+    /// <b>not</b> log the new account in - the admin stays logged in as
+    /// themselves and sees a confirmation on the Dashboard instead.
+    ///
+</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateEmployee(string username, string password, string confirmPassword, string displayName, string memberId)
@@ -209,15 +215,16 @@ namespace PIV11.Controllers
 
         // POST: /Account/DeleteAccount (admin only
         /// <summary>
-        /// POST: <c>/Account/DeleteAccount</c>. Admin only. Deletes any
-        /// account except one with <c>Role == "admin"</c> - that case is
-        /// hard-blocked (checked here, not just hidden in the UI), since
-        /// there's no way to create a second admin and losing the only one
-        /// would lock the app's admin features out permanently. Cascades to
-        /// that account's own My People data at the database level;
-        /// <c>EditHistory</c> rows are untouched since <c>EditedByUser</c> is a
-        /// plain string, not a foreign key.
-        /// </summary>
+    /// POST: <c>/Account/DeleteAccount</c>. Admin only. Deletes any
+    /// account except one with <c>Role == "admin"</c> - that case is
+    /// hard-blocked (checked here, not just hidden in the UI), since
+    /// there's no way to create a second admin and losing the only one
+    /// would lock the app's admin features out permanently. Cascades to
+    /// that account's own My People data at the database level;
+    /// <c>EditHistory</c> rows are untouched since <c>EditedByUser</c> is a
+    /// plain string, not a foreign key.
+    ///
+</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteAccount(string userId)
@@ -246,9 +253,9 @@ namespace PIV11.Controllers
                 // Cascades to that account's own My People data at the database level.
                 // EditHistory rows are untouched - EditedByUser is a plain string, not a foreign key, so the historical record of
                 // what this account did stays intact even after deletion.
-                // Hace cascada en la informaciÛn de Mi Gente de esa cuenta a nivel de base de datos. Las filas de EditHistory quedan
-                // intactas - EditedByUser es una simple cadena de texto, no una llave for·nea, asÌ que el registro histÛrico de lo
-                // que hizo esta cuenta permanece intacto incluso despuÈs de la eliminaciÛn.
+                    // Hace cascada en la informaci√≥n de Mi Gente de esa cuenta a nivel de base de datos. Las filas de EditHistory quedan
+                    // intactas - EditedByUser es una simple cadena de texto, no una llave for√°nea, as√≠ que el registro hist√≥rico de lo
+                    // que hizo esta cuenta permanece intacto incluso despu√©s de la eliminaci√≥n.
                 db.Users.Remove(account);
                 db.SaveChanges();
                 TempData["AccountDeleteMessage"] = "Account '" + normalized + "' deleted.";
@@ -274,12 +281,13 @@ namespace PIV11.Controllers
         }
 
         /// <summary>
-        /// POST: <c>/Account/ChangePassword</c>. Requires the correct current
-        /// password before accepting a new one. Scoped to the logged-in
-        /// account only (<see cref="SessionHelper.CurrentUsername"/>) -
-        /// works identically for every role, since it just updates that
-        /// account's own <c>Users</c> row.
-        /// </summary>
+    /// POST: <c>/Account/ChangePassword</c>. Requires the correct current
+    /// password before accepting a new one. Scoped to the logged-in
+    /// account only (<see cref="SessionHelper.CurrentUsername" />) -
+    /// works identically for every role, since it just updates that
+    /// account's own <c>Users</c> row.
+    ///
+</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ChangePassword(string currentPassword, string newPassword, string confirmNewPassword)
@@ -342,15 +350,16 @@ namespace PIV11.Controllers
         }
 
         /// <summary>
-        /// POST: <c>/Account/ChangeDisplayName</c>. Updates the logged-in
-        /// account's <c>DisplayName</c> - blank clears it back to falling
-        /// through to the raw username, matching how it behaves for an
-        /// account that never set one. Re-calls
-        /// <see cref="SessionHelper.LogIn"/> with the fresh value right
-        /// after saving, so the header pill updates immediately instead of
-        /// only after the next login (Session caches DisplayName at login
-        /// time, it doesn't re-read the database on every request).
-        /// </summary>
+    /// POST: <c>/Account/ChangeDisplayName</c>. Updates the logged-in
+    /// account's <c>DisplayName</c> - blank clears it back to falling
+    /// through to the raw username, matching how it behaves for an
+    /// account that never set one. Re-calls
+    /// <see cref="SessionHelper.LogIn" /> with the fresh value right
+    /// after saving, so the header pill updates immediately instead of
+    /// only after the next login (Session caches DisplayName at login
+    /// time, it doesn't re-read the database on every request).
+    ///
+</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ChangeDisplayName(string displayName)
@@ -381,11 +390,12 @@ namespace PIV11.Controllers
 
         /* Helpers - Ayudantes */
         /// <summary>
-        /// Shared field validation for <see cref="Register(string, string, string, string, string)"/>
-        /// and <see cref="CreateEmployee(string, string, string, string, string)"/>:
-        /// blank username, then blank password, then password/confirm
-        /// mismatch, checked in that order.
-        /// </summary>
+    /// Shared field validation for <see cref="Register(string, string, string, string, string)" />
+    /// and <see cref="CreateEmployee(string, string, string, string, string)" />:
+    /// blank username, then blank password, then password/confirm
+    /// mismatch, checked in that order.
+    ///
+</summary>
         /// <returns><c>null</c> if everything's valid; otherwise the first applicable error message.</returns>
         private string ValidateNewAccountFields(string username, string password, string confirmPassword)
         {
