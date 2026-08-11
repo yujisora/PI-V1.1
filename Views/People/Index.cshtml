@@ -1,167 +1,70 @@
-﻿@model PIV11.Models.ViewModels.HomeSearchViewModel
-@{
-    ViewBag.ActiveScreen = "Home";
-    ViewBag.Title = "Home";
-}
-
-<section class="hero">
-    <p class="hero-eyebrow">Barcode-powered food intelligence</p>
-    <h1 class="hero-title">Know what's in<br /><span class="text-primary">your food.</span></h1>
-    <p class="hero-subtitle">
-        Search any product's barcode or name to instantly see nutrition facts, allergens,
-        and whether it's safe for everyone you care about.
-    </p>
-
-    <div class="search-wrapper">
-        @using (Html.BeginForm("Search", "Home", FormMethod.Get, new { role = "search" }))
-        {
-            <label for="query" class="sr-only">Enter EAN/UPC barcode number or product name</label>
-            <div class="search-form">
-                <input type="text" id="query" name="query" class="search-input"
-                       placeholder="Search barcode or name..." value="@Model.Query" autofocus="autofocus" />
-                <label for="scanFileInput" class="icon-btn scan-btn" aria-label="Scan a barcode with your camera" title="Scan barcode">
-                    <span aria-hidden="true">&#128247;</span>
-                </label>
-                <input type="file" id="scanFileInput" accept="image/*" capture="environment" class="sr-only" />
-                <button type="submit" class="btn-primary search-btn">Search</button>
-            </div>
-        }
-
-        <p id="scanStatus" class="scan-status" role="status" hidden>Reading barcode&hellip;</p>
-
-        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-        {
-            <p class="form-error" role="alert">@Model.ErrorMessage</p>
-        }
-
-        @if (!string.IsNullOrEmpty(Model.NotFoundMessage))
-        {
-            <p class="form-error" role="alert">
-                @Model.NotFoundMessage
-                @if (!string.IsNullOrEmpty(Model.NotFoundUpc))
-                {
-                    <a href="@Url.Action("AddProduct", "Home", new { upc = Model.NotFoundUpc })" class="link-inline">Add it here &rarr;</a>
-                }
-                else
-                {
-                    <a href="@Url.Action("AddProduct", "Home")" class="link-inline">Add it here &rarr;</a>
-                }
-            </p>
-        }
-
-        <a href="@Url.Action("Recent", "Home")" class="hero-recent-link">View recently searched products &rarr;</a>
-    </div>
-
-    @if (Model.Results != null && Model.Results.Count > 0)
-    {
-        <div class="search-results" role="region" aria-label="Search results">
-            <p class="search-results-title">@Model.Results.Count products matched &ldquo;@Model.Query&rdquo; - pick one:</p>
-            <div class="search-results-list">
-                @foreach (var r in Model.Results)
-                {
-                    <a href="@Url.Action("Info", "Product", new { upc = r.UPC })" class="search-result-item">
-                        <span class="search-result-icon" aria-hidden="true">&#128230;</span>
-                        <span class="search-result-text">
-                            <span class="search-result-name">@r.Name</span>
-                            <span class="search-result-meta">@(string.IsNullOrEmpty(r.Brand) ? "" : r.Brand + " \u00b7 ")@r.UPC</span>
-                        </span>
-                        @if (r.HasAllergens)
-                        {
-                            <span class="search-result-warning" aria-label="Contains allergens" title="Contains allergens">&#9888;</span>
-                        }
-                    </a>
-                }
-            </div>
-        </div>
+﻿@model System.Collections.Generic.List<PIV11.Models.ViewModels.PersonGroupViewModel>
+    @{
+    ViewBag.ActiveScreen = "My People";
+    ViewBag.Title = "My People";
     }
-</section>
 
-<section class="feature-grid">
-    <div class="card feature-card">
-        <div class="feature-icon" aria-hidden="true">&#8505;&#65039;</div>
-        <h3>Nutrition Facts</h3>
-        <p class="text-muted">Full nutritional breakdown per serving &ndash; calories, fats, sugars, sodium and more.</p>
-    </div>
-    <div class="card feature-card">
-        <div class="feature-icon" aria-hidden="true">&#9888;&#65039;</div>
-        <h3>Allergen Alerts</h3>
-        <p class="text-muted">Instantly flag products containing any of your household's registered allergens.</p>
-    </div>
-    <div class="card feature-card">
-        <div class="feature-icon" aria-hidden="true">&#128101;</div>
-        <h3>My People</h3>
-        <p class="text-muted">Allergen profiles for family, friends, and colleagues &ndash; personalized safety warnings on every scan.</p>
-    </div>
-</section>
+    <div class="page-container-narrow">
+        <div class="page-header-row">
+            <div>
+                <h2>My People</h2>
+                <p class="text-muted">Allergen profiles for family, friends, and colleagues &ndash; get instant safety alerts for everyone you care about.</p>
+            </div>
+            <a href="@Url.Action(" MemberForm", "People" )" class="btn-primary">+ Add Person</a>
+        </div>
 
-@{
-    // Defined as a plain C# string, not typed directly into markup - @
-    // is just an ordinary character inside a quoted C# string literal,
-    // which sidesteps an edge case in classic MVC 5's Razor tokenizer
-    // where @@ escaping misbehaves when a digit immediately follows.
-    //
-    // Using Quagga2 (the actively-maintained @ericblade/quagga2 fork)
-    // instead of ZXing-js - it decodes real-world retail barcode photos
-    // more reliably in practice, and its inputStream.size option
-    // downscales large phone-camera photos internally before decoding,
-    // which a full-resolution image can otherwise choke on.
-    string quaggaCdnUrl = "https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js";
-}
-@section Scripts {
-    <script src="@quaggaCdnUrl"></script>
-    <script>
-        (function () {
-            var scanFileInput = document.getElementById('scanFileInput');
-            var statusEl = document.getElementById('scanStatus');
-            var queryInput = document.getElementById('query');
-            var searchForm = queryInput.closest('form');
-
-            if (!scanFileInput) return;
-
-            // Deliberately NOT using getUserMedia()/live video here - that
-            // API requires a "secure context" (HTTPS or localhost), which
-            // makes it unusable when demoing on phones over a plain local
-            // network (http://192.168.x.x). A file input with
-            // capture="environment" instead opens the phone's native
-            // camera app directly to take one photo - that's a much older,
-            // always-available browser feature with no HTTPS requirement
-            // at all. The trade-off is one extra tap (take photo, confirm)
-            // instead of continuous live scanning.
-            scanFileInput.addEventListener('change', function () {
-                var file = this.files && this.files[0];
-                if (!file) return;
-
-                if (typeof Quagga === 'undefined') {
-                    alert("Couldn't load the scanner. Check your connection and try again.");
-                    scanFileInput.value = '';
-                    return;
+        @if (Model == null || Model.Count == 0)
+        {
+        <p class="text-muted empty-state">
+            You haven't added anyone yet.
+        </p>
+        }
+        else
+        {
+        foreach (var group in Model)
+        {
+        <details class="people-group-details" open="open">
+            <summary class="people-group-summary">
+                @group.GroupName
+                <span class="people-group-count">@group.Members.Count member@(group.Members.Count != 1 ? "s" : "")</span>
+            </summary>
+            <div class="people-member-list">
+                @foreach (var member in group.Members)
+                {
+                <div class="people-member-row">
+                    <div class="people-member-info">
+                        <p class="people-member-name">@member.Name</p>
+                        @if (member.Allergens.Count > 0)
+                        {
+                        <div class="people-member-chips">
+                            @foreach (var allergen in member.Allergens)
+                            {
+                            <span class="badge-amber">@allergen</span>
+                            }
+                        </div>
+                        }
+                        else
+                        {
+                        <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.2rem;">No allergens</p>
+                        }
+                    </div>
+                    <div class="people-member-actions">
+                        <a href="@Url.Action(" MemberForm", "People" , new { id=member.PersonID })"
+                           class="icon-btn-small" aria-label="Edit @member.Name" title="Edit">&#9998;</a>
+                        @using (Html.BeginForm("DeleteMember", "People", new { id = member.PersonID }, FormMethod.Post,
+                        new { onsubmit = "return confirm('Remove this person?');" }))
+                        {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="icon-btn-small icon-btn-danger" aria-label="Remove @member.Name" title="Remove">&#10005;</button>
+                        }
+                    </div>
+                </div>
                 }
-
-                statusEl.hidden = false;
-                var imageUrl = URL.createObjectURL(file);
-
-                function cleanUp() {
-                    URL.revokeObjectURL(imageUrl);
-                    scanFileInput.value = '';
-                    statusEl.hidden = true;
-                }
-
-                Quagga.decodeSingle({
-                    decoder: { readers: ['ean_reader', 'upc_reader', 'upc_e_reader'] },
-                    locate: true,
-                    src: imageUrl,
-                    inputStream: { size: 1600 }
-                }, function (result) {
-                    if (result && result.codeResult && result.codeResult.code) {
-                        cleanUp();
-                        queryInput.value = result.codeResult.code;
-                        searchForm.submit();
-                    } else {
-                        cleanUp();
-                        alert("Couldn't find a barcode in that photo. Try again with the barcode centered, well-lit, filling more of the frame, and in focus.");
-                    }
-                });
-            });
-        })();
-    </script>
-}
+                <a href="@Url.Action(" MemberForm", "People" , new { groupName=group.GroupName })" class="link-inline add-to-group-link">
+                    + Add person to @group.GroupName
+                </a>
+            </div>
+        </details>
+        }
+        }
+    </div>
