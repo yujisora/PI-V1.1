@@ -10,7 +10,7 @@
                 <h2>My People</h2>
                 <p class="text-muted">Allergen profiles for family, friends, and colleagues &ndash; get instant safety alerts for everyone you care about.</p>
             </div>
-            <a href="@Url.Action(" MemberForm", "People" )" class="btn-primary">+ Add Person</a>
+            <a href="@Url.Action("MemberForm", "People" )" class="btn-primary">+ Add Person</a>
         </div>
 
         @if (Model == null || Model.Count == 0)
@@ -49,7 +49,7 @@
                         }
                     </div>
                     <div class="people-member-actions">
-                        <a href="@Url.Action(" MemberForm", "People" , new { id=member.PersonID })"
+                        <a href="@Url.Action("MemberForm", "People" , new { id=member.PersonID })"
                            class="icon-btn-small" aria-label="Edit @member.Name" title="Edit">&#9998;</a>
                         @using (Html.BeginForm("DeleteMember", "People", new { id = member.PersonID }, FormMethod.Post,
                         new { onsubmit = "return confirm('Remove this person?');" }))
@@ -60,7 +60,7 @@
                     </div>
                 </div>
                 }
-                <a href="@Url.Action(" MemberForm", "People" , new { groupName=group.GroupName })" class="link-inline add-to-group-link">
+                <a href="@Url.Action("MemberForm", "People" , new { groupName=group.GroupName })" class="link-inline add-to-group-link">
                     + Add person to @group.GroupName
                 </a>
             </div>
