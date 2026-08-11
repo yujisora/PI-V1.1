@@ -158,8 +158,12 @@
                     @if (Model.HasContainerToggle)
                     {
                         <div class="nutrition-toggle-row">
-                            <button type="button" class="nutrition-toggle-btn active" data-mode="per100">Per 100 g/ml</button>
-                            <button type="button" class="nutrition-toggle-btn" data-mode="container">Per Container (@Model.ContainerAmountLabel)</button>
+                            <span class="nutrition-toggle-label active" data-state="per100">Per 100 g/ml</span>
+                            <button type="button" id="nutritionToggleSwitch" class="toggle-switch" role="switch"
+                                    aria-checked="false" aria-label="Switch between per-100 and per-container nutrition values">
+                                <span class="toggle-switch-knob"></span>
+                            </button>
+                            <span class="nutrition-toggle-label" data-state="container">Per Container (@Model.ContainerAmountLabel)</span>
                         </div>
                     }
                     <tbody>
@@ -210,17 +214,31 @@
     </div>
 </div>
 <script>
-    document.querySelectorAll('.nutrition-toggle-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.nutrition-toggle-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            var mode = this.dataset.mode;
+    var nutritionSwitch = document.getElementById('nutritionToggleSwitch');
+    if (nutritionSwitch) {
+        function setNutritionMode(useContainer) {
+            nutritionSwitch.setAttribute('aria-checked', useContainer.toString());
+            document.querySelectorAll('.nutrition-toggle-label').forEach(function (label) {
+                var isThisOne = (label.dataset.state === 'container') === useContainer;
+                label.classList.toggle('active', isThisOne);
+            });
             document.querySelectorAll('.nutrition-value').forEach(function (cell) {
-                var val = mode === 'container' ? cell.dataset.container : cell.dataset.per100;
+                var val = useContainer ? cell.dataset.container : cell.dataset.per100;
                 var unitSpan = cell.querySelector('.nutrition-unit');
-                cell.childNodes[0].textContent = (val === '' || val === undefined) ? '0' : val;
+                cell.childNodes[0].textContent = (!val || val === 'null') ? '0' : val;
                 if (unitSpan) cell.appendChild(unitSpan);
             });
+        }
+
+        nutritionSwitch.addEventListener('click', function () {
+            setNutritionMode(this.getAttribute('aria-checked') !== 'true');
         });
-    });
+
+        document.querySelectorAll('.nutrition-toggle-label').forEach(function (label) {
+            label.style.cursor = 'pointer';
+            label.addEventListener('click', function () {
+                setNutritionMode(this.dataset.state === 'container');
+            });
+        });
+    }
 </script>

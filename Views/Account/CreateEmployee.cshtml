@@ -1,17 +1,12 @@
 ﻿@{
     ViewBag.ActiveScreen = "Home";
-    ViewBag.Title = "Create Employee Account";
+    ViewBag.Title = "Create Account";
 }
-
-@*
-    Admin-only view: creates employee accounts; user accounts are made by users themselves (via register.cshtml)
-    Vista solo para admin: crea cuentas de empleado; las cuentas de usuario son creadas por los usuarios mismos (via register.cshtml)
-*@
 
 <div class="page-container-narrow">
     <div class="card">
-        <h2>Create Employee Account</h2>
-        <p class="text-muted" style="margin-bottom: 1rem;">The new account can edit and add products, but won't have My People access.</p>
+        <h2>Create Account</h2>
+        <p class="text-muted" style="margin-bottom: 1rem;">Admin only. Choose whether the new account is an employee or another admin.</p>
 
         @Html.ValidationSummary(false, "", new { @class = "form-error", role = "alert" })
 
@@ -19,30 +14,43 @@
         {
             @Html.AntiForgeryToken()
 
+            <label class="field-label" style="margin-top: 0;">Role</label>
+            <div class="allergen-checkbox-grid" style="grid-template-columns: 1fr 1fr;">
+                <label class="allergen-checklist-item">
+                    <input type="radio" name="role" value="employee" checked="checked" />
+                    Employee
+                </label>
+                <label class="allergen-checklist-item">
+                    <input type="radio" name="role" value="admin" />
+                    Admin
+                </label>
+            </div>
+            <p class="field-hint">Employee: can edit/add products (subject to admin review). Admin: full access, including managing other accounts.</p>
+
             <label class="field-label" for="username">Username</label>
             <input type="text" id="username" name="username" class="field-input"
-                   placeholder="Choose a username" title="What the employee logs in with" aria-describedby="usernameEmpHint" />
-            <p id="usernameEmpHint" class="field-hint">What this employee will type to log in.</p>
+                   placeholder="Choose a username" title="What this account logs in with" aria-describedby="usernameEmpHint" />
+            <p id="usernameEmpHint" class="field-hint">What this account will type to log in.</p>
 
-            <label class="field-label" for="displayName">Employee Name</label>
+            <label class="field-label" for="displayName">Name</label>
             <input type="text" id="displayName" name="displayName" class="field-input"
-                   placeholder="e.g. John" title="How this employee's name appears in the app" aria-describedby="displayNameEmpHint" />
+                   placeholder="e.g. John" title="How this account's name appears in the app" aria-describedby="displayNameEmpHint" />
             <p id="displayNameEmpHint" class="field-hint">Optional - shown in the header instead of the username (e.g. &ldquo;John | Employee&rdquo;).</p>
 
-            <label class="field-label" for="memberId">Worker ID</label>
+            <label class="field-label" for="memberId">Member ID</label>
             <input type="text" id="memberId" name="memberId" class="field-input"
-                   placeholder="e.g. an employee number" title="Optional worker ID" aria-describedby="memberIdEmpHint" />
-            <p id="memberIdEmpHint" class="field-hint">Optional - an employee/worker number, if you use one.</p>
+                   placeholder="e.g. a worker number" title="Optional member ID" aria-describedby="memberIdEmpHint" />
+            <p id="memberIdEmpHint" class="field-hint">Optional - a worker/employee number, if you use one.</p>
 
             <label class="field-label" for="password">Password</label>
             <input type="password" id="password" name="password" class="field-input"
-                   placeholder="Choose a password" title="The employee's password" />
+                   placeholder="Choose a password" title="The account's password" />
 
             <label class="field-label" for="confirmPassword">Confirm Password</label>
             <input type="password" id="confirmPassword" name="confirmPassword" class="field-input"
                    placeholder="Type it again" title="Confirm the password" />
 
-            <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">Create Employee Account</button>
+            <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">Create Account</button>
         }
     </div>
 </div>

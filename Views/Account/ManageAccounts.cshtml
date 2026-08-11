@@ -4,14 +4,6 @@
     ViewBag.Title = "Manage Accounts";
 }
 
-@*
-    Admin-only view: allows to see and manage other users (note there is only one admin account)
-    This view is accessible only to users with the "admin" role, enforced in the AccountController.
-
-    Vista solo para admin: permite ver y administrar otras cuentas de usuario (nota: solo hay una cuenta de admin)
-    Esta vista es accesible solo para usuarios con el rol "admin", lo cual se aplica en el AccountController.
-*@
-
 <div class="page-container">
     <h2>Manage Accounts</h2>
     <p class="text-muted" style="margin-bottom: 1.5rem;">Every account registered in the system.</p>
@@ -52,24 +44,20 @@
                             ? char.ToUpper(account.Role[0]) + account.Role.Substring(1)
                             : account.Role;
 
+                        // Only the one literal "admin" account is protected
+                        // from deletion - a different account can also have
+                        // Role == "admin" now and still be deletable.
+                        bool isProtected = account.UserID == "admin";
+
                         <tr>
                             <td>@(string.IsNullOrEmpty(account.DisplayName) ? "\u2014" : account.DisplayName)</td>
                             <td>@account.UserID</td>
                             <td><span class="status-badge @roleBadgeClass">@roleLabel</span></td>
                             <td>@(string.IsNullOrEmpty(account.MemberID) ? "\u2014" : account.MemberID)</td>
                             <td>
-                                @if (account.Role == "admin")
+                                @if (isProtected)
                                 {
                                     <span class="text-muted" style="font-size: 0.85rem;">Protected</span>
-                                }
-                                else if (account.Role == "employee")
-                                {
-                                    using (Html.BeginForm("DeleteAccount", "Account", new { userId = account.UserID }, FormMethod.Post,
-                                        new { onsubmit = "return confirm('Delete this account permanently? This cannot be undone.');" }))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn-deny">Delete</button>
-                                    }
                                 }
                                 else
                                 {

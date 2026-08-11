@@ -2595,3 +2595,58 @@ input, select, textarea {
     .user-menu-item:hover {
         background: var(--muted);
     }
+
+.nutrition-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+.nutrition-toggle-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    transition: color 0.15s ease;
+}
+
+    .nutrition-toggle-label.active {
+        color: var(--foreground);
+    }
+
+.toggle-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 1.5rem;
+    border-radius: var(--radius-full);
+    background: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+    .toggle-switch[aria-checked="true"] {
+        background: var(--primary-solid);
+        border-color: var(--primary-solid);
+    }
+
+.toggle-switch-knob {
+    position: absolute;
+    top: 50%;
+    left: 0.15rem;
+    transform: translateY(-50%);
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    background: #fff;
+    transition: left 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-switch[aria-checked="true"] .toggle-switch-knob {
+    left: calc(100% - 1.25rem);
+}

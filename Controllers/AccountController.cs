@@ -8,14 +8,16 @@ namespace PIV11.Controllers
     /// <summary>
     /// Login/Logout, public shopper self-registration
     /// (<see cref="Register()"/>/<see cref="Register(string, string, string, string, string)"/>),
-    /// admin-only employee creation
-    /// (<see cref="CreateEmployee()"/>/<see cref="CreateEmployee(string, string, string, string, string)"/>),
+    /// admin-only employee/admin account creation
+    /// (<see cref="CreateEmployee()"/>/<see cref="CreateEmployee(string, string, string, string, string, string)"/>),
     /// admin-only account management
     /// (<see cref="ManageAccounts"/>, <see cref="DeleteAccount"/>), a public
     /// Privacy Policy page, and change-name/change-password for any
-    /// logged-in role. Admin accounts are never creatable or deletable
-    /// through any action here - only the one seeded admin account can
-    /// ever exist.
+    /// logged-in role. Any number of admin accounts can now exist, but
+    /// the one literal seeded account named "admin" can never be deleted
+    /// - that's what actually guarantees the app can never end up with
+    /// zero admins, regardless of how many other admin accounts get
+    /// created or removed.
     /// </summary>
     public class AccountController : Controller
     {
@@ -127,7 +129,7 @@ namespace PIV11.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        /// <summary>GET: <c>/Account/CreateEmployee</c>. Admin only - redirects to Home for anyone else (covers both "not logged in" and "wrong role").</summary>
+        /// <summary>GET: <c>/Account/CreateEmployee</c>. Admin only - redirects to Home for anyone else (covers both "not logged in" and "wrong role"). Lets admin choose the new account's role (employee or admin).</summary>
         public ActionResult CreateEmployee()
         {
             if (!SessionHelper.IsAdmin)
@@ -135,27 +137,29 @@ namespace PIV11.Controllers
                 return RedirectToAction("Index", "Home");
             }
             ViewBag.ActiveScreen = "Home";
-            ViewBag.Title = "Create Employee Account";
+            ViewBag.Title = "Create Account";
             return View();
         }
 
         /// <summary>
         /// POST: <c>/Account/CreateEmployee</c>. Admin only. Same validation
         /// pattern as <see cref="Register(string, string, string, string, string)"/>
-        /// but creates a <c>Role = "employee"</c> account and does
-        /// <b>not</b> log the new account in - the admin stays logged in as
-        /// themselves and sees a confirmation on the Dashboard instead.
+        /// but creates either a <c>Role = "employee"</c> or <c>Role = "admin"</c>
+        /// account depending on <paramref name="role"/> (unrecognized/missing
+        /// values fall back to <c>"employee"</c> - the safer default), and
+        /// does <b>not</b> log the new account in - the admin stays logged in
+        /// as themselves and sees a confirmation on the Dashboard instead.
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CreateEmployee(string username, string password, string confirmPassword, string displayName, string memberId)
+        public ActionResult CreateEmployee(string username, string password, string confirmPassword, string displayName, string memberId, string role)
         {
             if (!SessionHelper.IsAdmin)
             {
                 return RedirectToAction("Index", "Home");
             }
             ViewBag.ActiveScreen = "Home";
-            ViewBag.Title = "Create Employee Account";
+            ViewBag.Title = "Create Account";
 
             var error = ValidateNewAccountFields(username, password, confirmPassword);
             if (error != null)
@@ -165,6 +169,7 @@ namespace PIV11.Controllers
             }
 
             string normalizedUsername = username.Trim().ToLower();
+            string normalizedRole = (role ?? "").Trim().ToLower() == "admin" ? "admin" : "employee";
 
             using (var db = new NorteMartContext())
             {
@@ -178,7 +183,7 @@ namespace PIV11.Controllers
                 {
                     UserID = normalizedUsername,
                     Pass = password,
-                    Role = "employee",
+                    Role = normalizedRole,
                     DisplayName = string.IsNullOrWhiteSpace(displayName) ? null : displayName.Trim(),
                     MemberID = string.IsNullOrWhiteSpace(memberId) ? null : memberId.Trim()
                 };
@@ -186,7 +191,8 @@ namespace PIV11.Controllers
                 db.SaveChanges();
             }
 
-            TempData["EmployeeCreatedMessage"] = "Employee account '" + normalizedUsername + "' created successfully.";
+            string roleLabel = normalizedRole == "admin" ? "Admin" : "Employee";
+            TempData["EmployeeCreatedMessage"] = roleLabel + " account '" + normalizedUsername + "' created successfully.";
             return RedirectToAction("Index", "Home");
         }
 
@@ -207,14 +213,16 @@ namespace PIV11.Controllers
             }
         }
 
-        // POST: /Account/DeleteAccount (admin only
+        // POST: /Account/DeleteAccount (admin only)
         /// <summary>
         /// POST: <c>/Account/DeleteAccount</c>. Admin only. Deletes any
-        /// account except one with <c>Role == "admin"</c> - that case is
-        /// hard-blocked (checked here, not just hidden in the UI), since
-        /// there's no way to create a second admin and losing the only one
-        /// would lock the app's admin features out permanently. Cascades to
-        /// that account's own My People data at the database level;
+        /// account except the one literally named <c>"admin"</c> - that
+        /// specific account is hard-blocked (checked here, not just hidden
+        /// in the UI), since it's the one guaranteed anchor that keeps the
+        /// app from ever ending up with zero admins. Other admin-role
+        /// accounts (created via <see cref="CreateEmployee(string, string, string, string, string, string)"/>)
+        /// CAN be deleted like any other account. Cascades to that
+        /// account's own My People data at the database level;
         /// <c>EditHistory</c> rows are untouched since <c>EditedByUser</c> is a
         /// plain string, not a foreign key.
         /// </summary>
@@ -229,17 +237,17 @@ namespace PIV11.Controllers
 
             string normalized = (userId ?? "").Trim().ToLower();
 
+            if (normalized == "admin")
+            {
+                TempData["AccountDeleteError"] = "The 'admin' account can't be deleted.";
+                return RedirectToAction("ManageAccounts");
+            }
+
             using (var db = new NorteMartContext())
             {
                 var account = db.Users.FirstOrDefault(u => u.UserID == normalized);
                 if (account == null)
                 {
-                    return RedirectToAction("ManageAccounts");
-                }
-
-                if (account.Role == "admin")
-                {
-                    TempData["AccountDeleteError"] = "Admin accounts can't be deleted.";
                     return RedirectToAction("ManageAccounts");
                 }
 
@@ -310,9 +318,6 @@ namespace PIV11.Controllers
                 var account = db.Users.FirstOrDefault(u => u.UserID == SessionHelper.CurrentUsername);
                 if (account == null)
                 {
-                    // Session refers to an account that no longer exists
-                    // (e.g. deleted by an admin while still logged in
-                    // elsewhere) - safest is to log out rather than guess.
                     SessionHelper.LogOut();
                     return RedirectToAction("Login", "Account");
                 }
@@ -344,12 +349,9 @@ namespace PIV11.Controllers
         /// <summary>
         /// POST: <c>/Account/ChangeDisplayName</c>. Updates the logged-in
         /// account's <c>DisplayName</c> - blank clears it back to falling
-        /// through to the raw username, matching how it behaves for an
-        /// account that never set one. Re-calls
-        /// <see cref="SessionHelper.LogIn"/> with the fresh value right
-        /// after saving, so the header pill updates immediately instead of
-        /// only after the next login (Session caches DisplayName at login
-        /// time, it doesn't re-read the database on every request).
+        /// through to the raw username. Re-calls <see cref="SessionHelper.LogIn"/>
+        /// with the fresh value right after saving, so the header pill
+        /// updates immediately instead of only after the next login.
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -382,7 +384,7 @@ namespace PIV11.Controllers
         /* Helpers - Ayudantes */
         /// <summary>
         /// Shared field validation for <see cref="Register(string, string, string, string, string)"/>
-        /// and <see cref="CreateEmployee(string, string, string, string, string)"/>:
+        /// and <see cref="CreateEmployee(string, string, string, string, string, string)"/>:
         /// blank username, then blank password, then password/confirm
         /// mismatch, checked in that order.
         /// </summary>
